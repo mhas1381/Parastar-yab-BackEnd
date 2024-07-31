@@ -43,7 +43,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
-    national_id = models.CharField(max_length=10, unique=True)
+    national_id = models.CharField(max_length=10, unique=True , null=True , blank=True)
     avatar = models.ImageField(blank=True, null=True)
     national_card_image = models.ImageField(null=True, blank=True)
 
@@ -82,17 +82,12 @@ class Client(User):
         return "Only for Clients"
 
 
-@receiver(post_save, sender=Client)
-def create_Client_profile(sender, instance, created, **kwargs):
-    if created and instance.role == User.Role.Client:
-        ClientProfile.objects.create(user=instance)
-
 
 class ClientProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Profile of {self.user.phone_number} (Client)"
+        return f"{self.user.phone_number}"
 
 
 class NurseManager(BaseUserManager):
@@ -110,11 +105,6 @@ class Nurse(User):
         return "Only for Nurses"
 
 
-@receiver(post_save, sender=Nurse)
-def create_Nurse_profile(sender, instance, created, **kwargs):
-    if created and instance.role == User.Role.Nurse:
-        NurseProfile.objects.create(user=instance)
-
 
 class NurseProfile(models.Model):
     practical_auth_status = [
@@ -123,7 +113,7 @@ class NurseProfile(models.Model):
         ('S', 'Successful')
     ]
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    Nurse_id = models.IntegerField(null=True, blank=True)
+    nurse_id = models.IntegerField(null=True, blank=True)
     additional_info = models.TextField(null=True, blank=True)
     salary_per_hour = models.FloatField(null=True, blank=True)
     practical_auth = models.CharField(
@@ -141,4 +131,13 @@ class NurseProfile(models.Model):
     )
 
     def __str__(self):
-        return f"Profile of {self.user.phone_number} (Nurse)"
+        return f"{self.user.phone_number}"
+
+# Signal handlers for creating profiles when a user is created
+@receiver(post_save, sender=User)
+def save_profile(sender, instance, created, **kwargs):
+    if created:
+        if instance.role == User.Role.Client:
+            ClientProfile.objects.create(user=instance)
+        elif instance.role == User.Role.Nurse:
+            NurseProfile.objects.create(user=instance)
