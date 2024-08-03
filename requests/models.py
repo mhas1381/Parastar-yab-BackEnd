@@ -23,10 +23,16 @@ class Request(models.Model):
     request_for_date = models.DateTimeField()
     request_start = models.DateTimeField()
     request_end = models.DateTimeField()
+
     address = models.TextField()
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
+
     for_others = models.BooleanField(default=False)
+    other_person_name = models.CharField(max_length=255, blank=True, null=True)
+    other_person_phone_number = models.CharField(
+        max_length=11, blank=True, null=True)
+
     status = models.CharField(
         max_length=20, choices=STATUS_CHOICES, default='PENDING')
     rate = models.FloatField(validators=[MinValueValidator(
@@ -36,5 +42,12 @@ class Request(models.Model):
     def __str__(self):
         return f"Request {self.id} by {self.client.user.phone_number}"
 
+
+    def clean(self):
+            super().clean()
+            if self.for_others:
+                if not self.other_person_name or not self.other_person_phone_number:
+                    raise ValidationError(
+                        "Both other person name and phone number must be provided if 'for others' is checked.")
     class Meta:
         ordering = ['-created_date']
