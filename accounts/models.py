@@ -5,11 +5,19 @@ from django.dispatch import receiver
 from django.core.validators import MinValueValidator, MaxValueValidator
 import re
 
+
 class MyUserManager(BaseUserManager):
     def create_user(self, phone_number, password=None, **extra_fields):
         if not phone_number:
             raise ValueError('The phone_number field must be set')
+
+        # Normalize phone number
         phone_number = self.normalize_phone_number(phone_number)
+
+        # Check for existing user with the same phone number
+        if self.model.objects.filter(phone_number=phone_number).exists():
+            raise ValueError('این شماره موبایل قبلا ثبت شده است.')
+
         user = self.model(phone_number=phone_number, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -19,31 +27,31 @@ class MyUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(phone_number, password, **extra_fields)
-    
+
     def normalize_phone_number(self, phone_number):
-        
+
         phone_number = re.sub(r'\D', '', phone_number)
-        
-            # seceond character should be checked
+
+        # seceond character should be checked
         if len(phone_number) == 11 and phone_number.startswith('0'):
-          
+
             normalized_number = '+98' + phone_number
         elif len(phone_number) == 10 and phone_number.startswith('9'):
-           
+
             normalized_number = '+98' + phone_number
         else:
-            raise ValueError('The phone_number is not valid')
+            raise ValueError('شماره موبایل معتبر نمی باشد')
 
         return normalized_number
 
 
 class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=15, unique=True)
-    is_superuser = models.BooleanField(default=False)
-    is_staff = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
-    is_verified = models.BooleanField(default=False)
-    national_id = models.CharField(max_length=10, unique=True , null=True , blank=True)
+    first_name = models.CharField(max_length=50, blank=True, null=True)
+    last_name = models.CharField(max_length=50, blank=True, null=True)
+    birthday = models.DateField(null=True , blank=True)
+    national_id = models.CharField(
+        max_length=10, unique=True, null=True, blank=True)
     avatar = models.ImageField(blank=True, null=True)
     national_card_image = models.ImageField(null=True, blank=True)
 
@@ -58,9 +66,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = "phone_number"
     REQUIRED_FIELDS = []
 
+    is_superuser = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False)
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
-
     objects = MyUserManager()
 
     def __str__(self):
@@ -80,7 +91,6 @@ class Client(User):
 
     def welcome(self):
         return "Only for Clients"
-
 
 
 class ClientProfile(models.Model):
@@ -105,7 +115,6 @@ class Nurse(User):
         return "Only for Nurses"
 
 
-
 class NurseProfile(models.Model):
     practical_auth_status = [
         ('UP', 'Upload documents'),
@@ -118,7 +127,7 @@ class NurseProfile(models.Model):
     salary_per_hour = models.FloatField(null=True, blank=True)
     practical_auth = models.CharField(
         choices=practical_auth_status,
-        default='UP', 
+        default='UP',
         max_length=20
     )
     is_working = models.BooleanField(default=False)
