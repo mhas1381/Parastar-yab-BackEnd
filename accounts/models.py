@@ -49,7 +49,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=15, unique=True)
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
-    birthday = models.DateField(null=True , blank=True)
+    birthday = models.DateField(null=True, blank=True)
     national_id = models.CharField(
         max_length=10, unique=True, null=True, blank=True)
     avatar = models.ImageField(blank=True, null=True)
@@ -143,6 +143,8 @@ class NurseProfile(models.Model):
         return f"{self.user.phone_number}"
 
 # Signal handlers for creating profiles when a user is created
+
+
 @receiver(post_save, sender=User)
 def save_profile(sender, instance, created, **kwargs):
     if created:
