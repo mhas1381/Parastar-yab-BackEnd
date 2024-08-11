@@ -33,7 +33,9 @@ class Request(models.Model):
     )
     request_end = models.DateTimeField()
 
-    address = models.TextField()
+    address = models.TextField(null=True, blank=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     for_others = models.BooleanField(default=False)
 

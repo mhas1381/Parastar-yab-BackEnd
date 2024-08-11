@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-
+import re
 # Import necessary profiles
 from .profiles import ClientProfile, NurseProfile
 
