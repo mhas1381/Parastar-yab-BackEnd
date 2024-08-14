@@ -39,6 +39,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=15, unique=True)
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
+    otp = models.CharField(max_length=4, blank=True, null=True)
+    logged = models.BooleanField(default=False, help_text='If otp verification got successful')
+    count = models.IntegerField(default=0, help_text='Number of otp sent')
+    
+    
     birthday = models.DateField(null=True, blank=True)
     national_id = models.CharField(max_length=10, unique=True, null=True, blank=True)
     avatar = models.ImageField(blank=True, null=True)

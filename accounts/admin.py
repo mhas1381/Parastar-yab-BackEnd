@@ -5,14 +5,14 @@ from accounts.models import *
 
 class CustomUserAdmin(UserAdmin):
     model = User
-    list_display = ("phone_number", "is_superuser", "is_active",
+    list_display = ("phone_number","otp" , "count" , "logged", "is_superuser", "is_active",
                     "is_verified", "role", "national_id")
     list_filter = ("is_superuser", "is_active", "is_verified", "role")
     search_fields = ("phone_number",)
     ordering = ("phone_number",)
 
     fieldsets = (
-        ("Authentication", {"fields": ("phone_number", "password")}),
+        ("Authentication", {"fields": ("phone_number","otp", "password")}),
         (
             "Permissions",
             {

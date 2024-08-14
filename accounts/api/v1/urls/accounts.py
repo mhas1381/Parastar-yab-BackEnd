@@ -1,12 +1,24 @@
-from django.urls import path
+from django.urls import path,include
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+    TokenVerifyView
 )
+from rest_framework import routers
+from ..views import *
+
+router = routers.DefaultRouter()
+router.register(r'user-register', RegisterView, basename='task')
+router.register(r'verify-otp' , VerifyPhoneOTPView , basename='verify-otp')
 
 urlpatterns = [
-
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('', include(router.urls)),
+    path('get-login-otp-mobile/<str:phone_number>/', ValidatePhoneSendOTP.as_view(), name='get-login-otp-mobile'),
+    # path('verify-login-otp-mobile/', VerifyPhoneOTPView.as_view(), name='login-otp-verify'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    
+    path('jwt/create/', TokenObtainPairView.as_view(), name='jwt-create'),
+    path('jwt/refresh/', TokenRefreshView.as_view(), name='jwt-refresh'),
+    path('jwt/verify/', TokenVerifyView.as_view(), name='jwt_verify'),
 
 ]
