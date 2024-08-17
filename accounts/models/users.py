@@ -40,6 +40,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=50, blank=True, null=True)
     last_name = models.CharField(max_length=50, blank=True, null=True)
     otp = models.CharField(max_length=4, blank=True, null=True)
+    otp_created_at = models.DateTimeField(blank=True, null=True)
     logged = models.BooleanField(default=False, help_text='If otp verification got successful')
     count = models.IntegerField(default=0, help_text='Number of otp sent')
     
