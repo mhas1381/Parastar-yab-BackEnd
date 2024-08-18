@@ -10,6 +10,7 @@ from ..views import *
 router = routers.DefaultRouter()
 # router.register(r'user-register', RegisterView, basename='user-register')
 router.register(r'verify-otp', VerifyPhoneOTPView, basename='verify-otp')
+router.register(r'update-user', UserUpdateView, basename='update-user')
 
 urlpatterns = [
     path('', include(router.urls)),

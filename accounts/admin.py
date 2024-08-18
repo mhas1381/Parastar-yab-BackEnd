@@ -5,7 +5,7 @@ from accounts.models import *
 
 class CustomUserAdmin(UserAdmin):
     model = User
-    list_display = ("phone_number","otp" , "count" , "logged", "is_superuser", "is_active",
+    list_display = ("phone_number","first_name","last_name","otp" , "count" , "logged", "is_superuser", "is_active",
                     "is_verified", "role", "national_id")
     list_filter = ("is_superuser", "is_active", "is_verified", "role")
     search_fields = ("phone_number",)
@@ -28,7 +28,7 @@ class CustomUserAdmin(UserAdmin):
         ("group permissions", {"fields": ("groups", "user_permissions")}),
         ("important date", {"fields": ("last_login",)}),
         ("Additional Information", {
-         "fields": ("national_id", "avatar", "national_card_image")}),
+         "fields": ("national_id", "avatar", "national_card_image","first_name","last_name")}),
     )
 
     add_fieldsets = (

@@ -4,34 +4,12 @@ from rest_framework.views import APIView
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
-from .serializers import RegisterSerializer,VerifyPhoneOTPModelSerializer
+from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import VerifyPhoneOTPModelSerializer,UserUpdateSerializer
 from .utils import otp_generator
 User = get_user_model()
 
-# class RegisterView(viewsets.ModelViewSet):
-#     queryset = User.objects.all()
-#     serializer_class = RegisterSerializer
-
-#     def create(self, request, *args, **kwargs):
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         user = serializer.save()
-#         headers = self.get_success_headers(serializer.data)
-
-#         # Generate JWT token
-#         refresh = RefreshToken.for_user(user)
-#         access_token = str(refresh.access_token)
-#         refresh_token = str(refresh)
-
-#         return Response({
-#             'response': serializer.data,
-#             'success': True,
-#             'message': 'User created successfully',
-#             'access_token': access_token,
-#             'refresh_token': refresh_token,
-#             'status': status.HTTP_201_CREATED,
-#         }, status=status.HTTP_201_CREATED, headers=headers)
 
 def send_otp(phone_number):
     if phone_number:
@@ -116,6 +94,7 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
                     'response': {
                         'id': user.id,
                         'phone_number': user.phone_number,
+                        'role':user.role
                     }
                 }, status=status.HTTP_200_OK)
             else:
@@ -152,3 +131,29 @@ class LogoutView(APIView):
                 'message': str(e),
                 'status': status.HTTP_400_BAD_REQUEST,
             })
+
+
+# update user database
+
+class UserUpdateView(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserUpdateSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.queryset.filter(id=self.request.user.id)
+
+    def update(self, request, *args, **kwargs):
+        user = self.request.user
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response({
+            'message': _('Profile updated successfully'),
+            'status': status.HTTP_200_OK,
+            'data': serializer.data,
+        })
+
+    def perform_update(self, serializer):
+        serializer.save()

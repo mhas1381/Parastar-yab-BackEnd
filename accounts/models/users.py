@@ -48,7 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     birthday = models.DateField(null=True, blank=True)
     national_id = models.CharField(max_length=10, unique=True, null=True, blank=True)
     avatar = models.ImageField(blank=True, null=True)
-    national_card_image = models.ImageField(null=True, blank=True)
+    national_card_image = models.ImageField( upload_to = 'national_card',null=True, blank=True)
 
     class Role(models.TextChoices):
         ADMIN = "ADMIN", "Admin"
