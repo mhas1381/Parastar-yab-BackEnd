@@ -14,6 +14,7 @@ router.register(r'verify-otp', VerifyPhoneOTPView, basename='verify-otp')
 urlpatterns = [
     path('', include(router.urls)),
     path('get-login-otp-mobile/<str:phone_number>/', ValidatePhoneSendOTP.as_view(), name='get-login-otp-mobile'),
+    path('get-login-otp-mobile/<str:phone_number>/<str:role>/', ValidatePhoneSendOTP.as_view(), name='get-login-otp-mobile-with-role'),
     path('logout/', LogoutView.as_view(), name='logout'),
 
     path('jwt/create/', TokenObtainPairView.as_view(), name='jwt-create'),

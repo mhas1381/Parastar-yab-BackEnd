@@ -33,25 +33,36 @@ User = get_user_model()
 #             'status': status.HTTP_201_CREATED,
 #         }, status=status.HTTP_201_CREATED, headers=headers)
 
-# def send_otp(phone_number):
-#     if phone_number:
-#         key = otp_generator()
-#         phone_number = str(phone_number)
-#         otp_key = str(key)
-#         print(otp_key)
-#         return otp_key
-#     return False
+def send_otp(phone_number):
+    if phone_number:
+        key = otp_generator()
+        phone_number = str(phone_number)
+        otp_key = str(key)
+        print(otp_key)
+        return otp_key
+    return False
 
 class ValidatePhoneSendOTP(APIView):
-    def get(self, request, phone_number, *args, **kwargs):
+    def get(self, request, phone_number, role=None, *args, **kwargs):
         try:
+            # اگر role ارسال نشده باشد، به صورت پیش‌فرض CLIENT قرار می‌گیرد
+            role = role if role else User.Role.CLIENT
+            
             if phone_number:
                 phone_number = str(phone_number).strip()
+                
+                # اگر کاربری با این شماره موجود نباشد، ایجادش کنید
                 user, created = User.objects.get_or_create(phone_number=phone_number)
 
+                # اگر کاربر جدید است، نقش را تنظیم کنید
+                if created:
+                    user.role = role
+                    user.save()
+                
+                # ارسال OTP و ذخیره زمان ارسال
                 new_otp = send_otp(phone_number)
                 user.otp = new_otp
-                user.otp_created_at = timezone.now()  # ذخیره زمان ایجاد OTP
+                user.otp_created_at = timezone.now()
                 user.save()
 
                 return Response({
@@ -68,6 +79,7 @@ class ValidatePhoneSendOTP(APIView):
                 'message': str(e),
                 'status': status.HTTP_400_BAD_REQUEST,
             })
+
 class VerifyPhoneOTPView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = VerifyPhoneOTPModelSerializer
@@ -82,7 +94,7 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
         try:
             user = User.objects.get(phone_number__iexact=phone_number)
 
-            # بررسی زمان انقضای OTP
+            
             if user.otp_created_at and timezone.now() > user.otp_created_at + timedelta(minutes=2):
                 return Response({
                     'message': 'OTP has expired',
