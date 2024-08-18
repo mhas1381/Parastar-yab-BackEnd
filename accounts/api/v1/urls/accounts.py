@@ -18,7 +18,7 @@ urlpatterns = [
     path('get-login-otp-mobile/<str:phone_number>/<str:role>/', ValidatePhoneSendOTP.as_view(), name='get-login-otp-mobile-with-role'),
     path('logout/', LogoutView.as_view(), name='logout'),
 
-    path('jwt/create/', TokenObtainPairView.as_view(), name='jwt-create'),
+    path('jwt/create/', CustomTokenObtainPairView.as_view(), name='jwt-create'),
     path('jwt/refresh/', TokenRefreshView.as_view(), name='jwt-refresh'),
     path('jwt/verify/', TokenVerifyView.as_view(), name='jwt-verify'),
 ]

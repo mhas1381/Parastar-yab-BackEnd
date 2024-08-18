@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 User = get_user_model()
 # Create your serializers here.
@@ -66,3 +67,15 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)
 
         return super().update(instance, validated_data)
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        
+        # اضافه کردن اطلاعات اضافی به توکن
+        token['role'] = user.role
+        token['phone_number'] = user.phone_number
+        token['id'] = user.id
+        
+        return token

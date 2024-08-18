@@ -1,12 +1,13 @@
 from rest_framework.response import Response
 from rest_framework import viewsets, status,permissions
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
 from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import VerifyPhoneOTPModelSerializer,UserUpdateSerializer
+from .serializers import VerifyPhoneOTPModelSerializer,UserUpdateSerializer,CustomTokenObtainPairSerializer
 from .utils import otp_generator
 User = get_user_model()
 
@@ -72,7 +73,6 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
         try:
             user = User.objects.get(phone_number__iexact=phone_number)
 
-            
             if user.otp_created_at and timezone.now() > user.otp_created_at + timedelta(minutes=2):
                 return Response({
                     'message': 'OTP has expired',
@@ -80,22 +80,19 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
                 })
 
             if user.otp == otp:
-                refresh = RefreshToken.for_user(user)
-                access_token = str(refresh.access_token)
-                refresh_token = str(refresh)
+                # استفاده از توکن سفارشی
+                token = CustomTokenObtainPairSerializer.get_token(user)
 
                 return Response({
                     'status': True,
                     'details': 'Login Successfully',
                     'token': {
-                        'refresh': refresh_token,
-                        'access': access_token,
+                        'refresh': str(token),
+                        'access': str(token.access_token),
+                        'role': token['role'],  # اضافه کردن نقش به پاسخ
+                        'phone_number': token['phone_number'],  # اضافه کردن شماره موبایل به پاسخ
+                        'id': token['id'],  # اضافه کردن id به پاسخ
                     },
-                    'response': {
-                        'id': user.id,
-                        'phone_number': user.phone_number,
-                        'role':user.role
-                    }
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({
@@ -107,6 +104,7 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
                 'message': 'User not found',
                 'status': status.HTTP_404_NOT_FOUND,
             })
+
 class LogoutView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
@@ -157,3 +155,6 @@ class UserUpdateView(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         serializer.save()
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
