@@ -7,8 +7,9 @@ from django.utils import timezone
 from datetime import timedelta
 from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import VerifyPhoneOTPModelSerializer,UserUpdateSerializer,CustomTokenObtainPairSerializer
+from .serializers import *
 from .utils import otp_generator
+from accounts.models import *
 User = get_user_model()
 
 
@@ -158,3 +159,11 @@ class UserUpdateView(viewsets.ModelViewSet):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+class ClientProfileViewSet(viewsets.ModelViewSet):
+    queryset = ClientProfile.objects.all()
+    serializer_class = ClientProfileSerializer
+
+class NurseProfileViewSet(viewsets.ModelViewSet):
+    queryset = NurseProfile.objects.all()
+    serializer_class = NurseProfileSerializer

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
+from accounts.models import *
 User = get_user_model()
 # Create your serializers here.
 
@@ -79,3 +80,13 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['id'] = user.id
         
         return token
+
+class ClientProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ClientProfile
+        fields = ['id', 'user']
+
+class NurseProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = NurseProfile
+        fields = ['id', 'user', 'nurse_id', 'additional_info', 'salary_per_hour', 'practical_auth', 'is_working', 'average_rate']
