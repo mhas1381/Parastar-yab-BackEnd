@@ -11,6 +11,7 @@ class Request(models.Model):
         ('REJECTED', 'رد شده'),
         ('COMPLETED', 'تکمیل شده'),
         ('CANCELLED', 'لغو شده'),
+        ('CLINET_CONFIRMATION', 'انتظار برای تایید متقاضی'),
         ('NURSING', 'پرستاری در حال انجام'),
     ]
 
@@ -20,9 +21,17 @@ class Request(models.Model):
     ]
 
     client = models.ForeignKey(
-        ClientProfile, on_delete=models.CASCADE, related_name='requests')
-    nurse = models.ForeignKey(NurseProfile, on_delete=models.SET_NULL,
-                              null=True, blank=True, related_name='requests')
+        ClientProfile, 
+        on_delete=models.CASCADE, 
+        related_name='requests'
+    )
+    nurse = models.ForeignKey(
+        NurseProfile, 
+        on_delete=models.SET_NULL,
+        null=True, 
+        blank=True, 
+        related_name='requests'
+    )
     created_date = models.DateTimeField(auto_now_add=True)
     request_for_date = models.DateTimeField()
     request_start = models.DateTimeField()
@@ -32,7 +41,6 @@ class Request(models.Model):
         help_text="مدت زمان درخواست به ساعت"
     )
     request_end = models.DateTimeField()
-
     address = models.TextField(null=True, blank=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
@@ -40,12 +48,21 @@ class Request(models.Model):
     for_others = models.BooleanField(default=False)
 
     status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default='PENDING')
-    rate = models.FloatField(validators=[MinValueValidator(
-        0.0), MaxValueValidator(10.0)], null=True, blank=True)
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default='PENDING'
+    )
+    rate = models.FloatField(
+        validators=[MinValueValidator(0.0), MaxValueValidator(10.0)],
+        null=True, 
+        blank=True
+    )
 
     category = models.CharField(
-        max_length=10, choices=CATEGORY_CHOICES, default='CHILD')
+        max_length=10, 
+        choices=CATEGORY_CHOICES, 
+        default='CHILD'
+    )
 
     def __str__(self):
         return f"درخواست {self.id} توسط {self.client.user.phone_number}"
