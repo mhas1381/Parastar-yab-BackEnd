@@ -18,41 +18,79 @@ class ClientRequestAPIView(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, pk=None, *args, **kwargs):
         """Getting all in proccess requests"""
-        in_proccess_requests = Request.objects.filter(
-            status__in=['PENDING', 'CLINET_CONFIRMATION', 'ACCEPTED', 'NURSING', ]
-        ) 
-        client = ClientProfile.objects.filter(user=request.user)
+        if pk:
+            return self.get_object(request, pk)
 
-        in_proccess_requests = in_proccess_requests.filter(client=client)
-        
+        client = ClientProfile.objects.filter(user=request.user).first()
+        in_proccess_requests = Request.objects.filter(
+            status__in=['PENDING', 'CLINET_CONFIRMATION', 'ACCEPTED', 'NURSING'],
+            client=client
+        )
+
+        if not in_proccess_requests:
+            return Response({'meessage':'mo request yet'}, status=status.HTTP_200_OK)
+    
         serializer = RequestSerializer(in_proccess_requests, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
+    def get_object(self, request, pk):
+        '''Get one of the requests wich is in proccess with details'''
+        client = ClientProfile.objects.filter(user=request.user).first()
+        in_proccess_requests = Request.objects.filter(
+            status__in=['PENDING', 'CLINET_CONFIRMATION', 'ACCEPTED', 'NURSING', ],
+            client=client,
+            id=pk
+        ).first()
+        
+        serializer = RequestSerializer(in_proccess_requests)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
     def post(self, request, *args, **kwargs):
         """Adding new request."""
-        serializer = RequestSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({'message':'data has problems'}, status=status.HTTP_400_BAD_REQUEST)
-
         clinet_profile = ClientProfile.objects.filter(user=request.user).first()
         if not clinet_profile:
-            return Response({'message':'data has problems'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         
         payload = {
             'client': clinet_profile
         }
-        serializer.save(**payload)
+
+        payload.update(request.data)
+
+        serializer = RequestSerializer(data=payload)
+        if not serializer.is_valid():
+            return Response(serializer.error_messages, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     
     def put(self, request, pk=None, *args, **kwargs):
-        """"""
-        pass
+        """Changing the situation of the requests."""
+        user_profile = ClientProfile.objects.filter(user=request.user).first()
+        request_object = Request.objects.filter(
+            client=user_profile,
+            id=pk
+        ).first()
+        if not request_object:
+            return Response({'message': 'you dont have any requests'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if request_object.update_status(request.data['status'], request.user.role):
+
+            if request.data['rate']:
+                request_object.rate = request.data['rate']
+                request_object.save()
+
+            serializer = RequestSerializer(request_object)
+            return Response(serializer.data)
+        
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -61,33 +99,34 @@ class ClientFinishedRequests(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, pk=None, *args, **kwargs):
         '''List all finished requests.'''
-        finished_requests = Request.objects.filter(status__in=['REJECTED', 'CANCELLED', 'COMPLETED']) 
-        finished_requests = finished_requests.filter(client=request.user)
+        if pk:
+            return self.get_object(request, pk)
+        
+        client = ClientProfile.objects.filter(user=request.user).first()
+        finished_requests = Request.objects.filter(
+            status__in=['REJECTED', 'CANCELLED', 'COMPLETED'],
+            client=client
+        ) 
 
         serializer = RequestSerializer(finished_requests, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
-    def get_details(self, request, pk=None, *args, **kwargs):
+    def get_object(self, request, pk):
         '''Get a request with all details.'''
-        finished_request = Request.objects.filter(pk=pk).first()
+        client = ClientProfile.objects.filter(user=request.user).first()
+        finished_requests = Request.objects.filter(
+            status__in=['REJECTED', 'CANCELLED', 'COMPLETED'],
+            client=client,
+            id=pk
+        ).first()
 
-        if not finished_request:
-            return Response({'message':'your data has problems'}, status=status.HTTP_400_BAD_REQUEST)
-        
+        serializer = RequestSerializer(finished_requests)
 
-        Client = ClientProfile.objects.filter(user=request.user).first()
-        if not Client: 
-            return Response({'message':'your data has problems'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        if finished_request.client == Client:
-            serilizer = RequestSerializer(finished_request)
-            return Response(serilizer.data, status=status.HTTP_200_OK)
-        
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.data, status=status.HTTP_200_OK)
         
 
 
@@ -99,10 +138,10 @@ class NurseList(APIView):
 
     def get(self, request, *args, **kwargs):
         
-        available_nurses = NurseProfile.objects.filter(is_working=False).order_by('-rate').values_list(
+        available_nurses = NurseProfile.objects.filter(is_working=False).order_by('-average_rate').values(
             'user__first_name',
             'user__last_name',
-            'rate'
+            'average_rate'
         )
         serializer = NurseListSerializer(available_nurses, many=True)
 
@@ -125,8 +164,8 @@ class NurseRequestsAPIView(APIView):
          
         on_going_requests = Request.objects.filter(
             status__in=['PENDING','CLINET_CONFIRMATION',  'ACCEPTED', 'NURSING'],
-            nurse=nurse_profile 
-            )
+            nurse=nurse_profile
+        )
         
         serializer = RequestSerializer(on_going_requests, many=True)
 
@@ -144,15 +183,27 @@ class NurseRequestsAPIView(APIView):
             status__in=['PENDING','CLINET_CONFIRMATION', 'ACCEPTED', 'NURSING'],
             nurse=nurse_profile,
             id=pk 
-            )
+        ).first()
         
         serializer = RequestSerializer(on_going_request)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
-    def put(self, request, *args, **kwargs):
-        """Changing status of a request"""
+    def put(self, request, pk=None, *args, **kwargs):
+        """Changing the situation of the requests."""
+        nurse_profile = NurseProfile.objects.filter(user=request.user).first()
+        request_object = Request.objects.filter(
+            nurse=nurse_profile,
+            id=pk
+        ).first()
+
+        if request_object.update_status(request.data['status'], request.user.role):
+            serializer = RequestSerializer(request_object)
+            return Response(serializer.data)
+            
+
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -179,7 +230,7 @@ class NurseFinishedRequests(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
-    def get(self, request, pk):
+    def get_object(self, request, pk):
         '''Get on request with details'''
         nurse_profile = NurseProfile.objects.filter(user=request.user).first()
         if not nurse_profile:
@@ -189,7 +240,7 @@ class NurseFinishedRequests(APIView):
             status__in=[ 'COMPLETED', 'REJECTED'],
             nurse=nurse_profile,
             id=pk 
-        )
+        ).first()
 
         serializer = RequestSerializer(finished_request)
 

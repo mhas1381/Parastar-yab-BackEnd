@@ -67,10 +67,67 @@ class Request(models.Model):
     def __str__(self):
         return f"درخواست {self.id} توسط {self.client.user.phone_number}"
 
+
     def clean(self):
         super().clean()
         if self.duration_hours <= 0:
             raise ValidationError("مدت زمان باید بیشتر از 0 ساعت باشد.")
+        
+
+    def update_status(self, status, role):
+        '''Changing the status based on the role and the previous status'''
+        
+        if status == 'ACCEPTED' and role == 'NURSE' and self.status == 'PENDING':
+            nurse = self.nurse
+            nurse.is_working = True
+            nurse.save()
+
+            other_pending_request = Request.objects.filter(
+                nurse=nurse,
+                status='PENDING',
+            ).exclude(id=self.id)
+
+            for request in other_pending_request:
+                request.status = 'REJECTED'
+                request.save()
+            
+            self.status = 'ACCEPTED'
+            self.save()
+
+            return True
+        
+        elif status == 'REJECTED' and role == 'NURSE' and self.status == 'PENDING':
+            self.status = 'REJECTED'
+            self.save()
+            return True
+
+        elif status == 'CANCELLED' and role == 'CLIENT' and self.status == 'PENDING':
+            self.status = 'CANCELLED'
+            self.save()
+            return True
+
+        elif status == 'NURSING' and role == 'NURSE' and self.status == 'ACCEPTED':
+            self.status = 'NURSING'
+            self.save()
+            return True
+        
+        elif status == 'CLINET_CONFIRMATION' and role == 'NURSE' and self.status == 'NURSING':
+            self.status = 'CLINET_CONFIRMATION'
+            self.save()
+            return True
+
+        elif status == 'COMPLETED' and role == 'CLIENT' and self.status == 'CLINET_CONFIRMATION':
+            self.status = 'COMPLETED'
+            self.save()
+
+            nurse = self.nurse
+            nurse.is_working = False
+            nurse.save()
+            
+            return True
+        
+        return False
+
 
     class Meta:
         ordering = ['-created_date']

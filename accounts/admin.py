@@ -53,6 +53,9 @@ class CustomUserAdmin(UserAdmin):
         ),
     )
 
+
+
+# class NurseProfilesAdmin(admin)
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         # You may want to filter queryset by role, if needed

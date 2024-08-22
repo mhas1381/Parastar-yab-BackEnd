@@ -2,7 +2,7 @@
 Serialing the data for request app.
 """
 from rest_framework import serializers
-from models import Request
+from .models import Request
 from accounts.models.profiles import NurseProfile
 
 
@@ -21,9 +21,9 @@ class RequestSerializer(serializers.ModelSerializer):
 
 class NurseListSerializer(serializers.Serializer):
     """Serilizing nurse profile objects."""
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-    rate = serializers.FloatField()
+    user__first_name = serializers.CharField()
+    user__last_name = serializers.CharField()
+    average_rate = serializers.FloatField()
 
 
 
