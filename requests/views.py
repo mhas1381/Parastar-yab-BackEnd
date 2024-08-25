@@ -4,12 +4,47 @@ views for request app
 from accounts.models.profiles import NurseProfile, ClientProfile
 from accounts.models.users import User
 from rest_framework.views import APIView
-from .serializers import RequestSerializer, NurseListSerializer
+from .serializers import RequestSerializer, NurseListSerializer, NurseSeriliazr
 from .models import Request
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsClient, IsNurse
+
+
+
+class NurseSetSallary(APIView):
+    """Nurses setting salary or changing it."""
+    permission_classes = [IsNurse, IsAuthenticated]
+
+    
+    def put(self, request, *args, **kwargs):
+        """Changing the nurse salary."""
+        user = User.objects.filter(pk=request.user.id).first()
+        nurse = NurseProfile.objects.filter(user=user).first()
+        
+        nurse.salary_per_hour = request.data['salary_per_hour']
+        nurse.save()
+        
+        # except:
+        #     # print(float(request.data['salary_per_hour']))
+        #     return Response({'message':'we are her'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = NurseSeriliazr(nurse)
+        return Response(serializer.data)
+
+
+    def get(self, request, *args, **kwargs):
+        """Getting nurse salary."""
+        user = User.objects.filter(pk=request.user.id).first()
+        nurse = NurseProfile.objects.filter(user=user).values(
+            'user__first_name',
+            'user__last_name',
+            'salary_per_hour'
+        ).first()
+        serializer = NurseSeriliazr(nurse)
+
+        return Response(serializer.data)
 
 
 

@@ -27,4 +27,11 @@ class NurseListSerializer(serializers.Serializer):
 
 
 
+class NurseSeriliazr(serializers.ModelSerializer):
+    """Serializer nurse salary prfile"""
+    
+    class Meta:
+        model = NurseProfile
+        fields = '__all__'
+
 
