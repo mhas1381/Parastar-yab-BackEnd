@@ -24,7 +24,7 @@ from django.conf.urls.static import static
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from accounts import urls
-from requests import urls
+from nurse_request import urls
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -47,7 +47,7 @@ urlpatterns = [
          cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc',
          cache_timeout=0), name='schema-redoc'),
-    path('', include('requests.urls'))
+    path('', include('nurse_request.urls'))
 ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
