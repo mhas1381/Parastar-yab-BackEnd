@@ -2,7 +2,7 @@
 mapping the urls for request app
 '''
 from django.urls import path
-from requests.views import *
+from nurse_request.views import *
 
 
 urlpatterns = [

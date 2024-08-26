@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "corsheaders",
     'drf_yasg',
     'accounts',
-    'requests',
+    'nurse_request',
 ]
 
 MIDDLEWARE = [
@@ -159,3 +159,7 @@ SIMPLE_JWT = {
 
 # cores headers
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Kaveh Negar
+KAVENEGAR_API_KEY = "374363774B494E545643546B2F66786E6A61497844444868357462577849786C424C376C4E736F466244593D"
+KAVENEGAR_SENDER = "10008663"
