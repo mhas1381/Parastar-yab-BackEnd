@@ -264,7 +264,7 @@ class NurseFinishedRequests(APIView):
         nurse_profile = NurseProfile.objects.filter(user=request.user).first()
         if not nurse_profile:
             return Response(
-                {"message": "nurse profile did not fount"},
+                {"message": "nurse profile not found"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

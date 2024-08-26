@@ -41,16 +41,14 @@ class Request(models.Model):
     ]
 
     client = models.ForeignKey(
-        ClientProfile, 
-        on_delete=models.CASCADE, 
-        related_name='requests'
+        ClientProfile, on_delete=models.CASCADE, related_name="requests"
     )
     nurse = models.ForeignKey(
-        NurseProfile, 
+        NurseProfile,
         on_delete=models.SET_NULL,
-        null=True, 
-        blank=True, 
-        related_name='requests'
+        null=True,
+        blank=True,
+        related_name="requests",
     )
     created_date = models.DateTimeField(auto_now_add=True)
     request_for_date = models.DateTimeField()
@@ -67,87 +65,86 @@ class Request(models.Model):
 
     for_others = models.BooleanField(default=False)
 
-    status = models.CharField(
-        max_length=20, 
-        choices=STATUS_CHOICES, 
-        default='PENDING'
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
     rate = models.FloatField(
         validators=[MinValueValidator(0.0), MaxValueValidator(10.0)],
-        null=True, 
-        blank=True
+        null=True,
+        blank=True,
     )
 
     category = models.CharField(
-        max_length=10, 
-        choices=CATEGORY_CHOICES, 
-        default='CHILD'
+        max_length=10, choices=CATEGORY_CHOICES, default="CHILD"
     )
 
     def __str__(self):
         return f"درخواست {self.id} توسط {self.client.user.phone_number}"
 
-
     def clean(self):
         super().clean()
         if self.duration_hours <= 0:
             raise ValidationError("مدت زمان باید بیشتر از 0 ساعت باشد.")
-        
 
     def update_status(self, status, role):
-        '''Changing the status based on the role and the previous status'''
-        
-        if status == 'ACCEPTED' and role == 'NURSE' and self.status == 'PENDING':
+        """Changing the status based on the role and the previous status"""
+
+        if status == "ACCEPTED" and role == "NURSE" and self.status == "PENDING":
             nurse = self.nurse
             nurse.is_working = True
             nurse.save()
 
             other_pending_request = Request.objects.filter(
                 nurse=nurse,
-                status='PENDING',
+                status="PENDING",
             ).exclude(id=self.id)
 
             for request in other_pending_request:
-                request.status = 'REJECTED'
+                request.status = "REJECTED"
                 request.save()
-            
-            self.status = 'ACCEPTED'
+
+            self.status = "ACCEPTED"
             self.save()
 
             return True
-        
-        elif status == 'REJECTED' and role == 'NURSE' and self.status == 'PENDING':
-            self.status = 'REJECTED'
+
+        elif status == "REJECTED" and role == "NURSE" and self.status == "PENDING":
+            self.status = "REJECTED"
             self.save()
             return True
 
-        elif status == 'CANCELLED' and role == 'CLIENT' and self.status == 'PENDING':
-            self.status = 'CANCELLED'
+        elif status == "CANCELLED" and role == "CLIENT" and self.status == "PENDING":
+            self.status = "CANCELLED"
             self.save()
             return True
 
-        elif status == 'NURSING' and role == 'NURSE' and self.status == 'ACCEPTED':
-            self.status = 'NURSING'
-            self.save()
-            return True
-        
-        elif status == 'CLINET_CONFIRMATION' and role == 'NURSE' and self.status == 'NURSING':
-            self.status = 'CLINET_CONFIRMATION'
+        elif status == "NURSING" and role == "NURSE" and self.status == "ACCEPTED":
+            self.status = "NURSING"
             self.save()
             return True
 
-        elif status == 'COMPLETED' and role == 'CLIENT' and self.status == 'CLINET_CONFIRMATION':
-            self.status = 'COMPLETED'
+        elif (
+            status == "CLINET_CONFIRMATION"
+            and role == "NURSE"
+            and self.status == "NURSING"
+        ):
+            self.status = "CLINET_CONFIRMATION"
+            self.save()
+            return True
+
+        elif (
+            status == "COMPLETED"
+            and role == "CLIENT"
+            and self.status == "CLINET_CONFIRMATION"
+        ):
+            self.status = "COMPLETED"
             self.save()
 
             nurse = self.nurse
             nurse.is_working = False
             nurse.save()
-            
-            return True
-        
-        return False
 
+            return True
+
+        return False
 
     class Meta:
         ordering = ["-created_date"]
