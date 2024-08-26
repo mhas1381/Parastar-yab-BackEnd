@@ -5,8 +5,10 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import RefreshToken
+from kavenegar import *
 from .serializers import *
 from .utils import otp_generator
 from accounts.models import *
@@ -15,40 +17,67 @@ User = get_user_model()
 
 def send_otp(phone_number):
     if phone_number:
-        key = otp_generator()
-        phone_number = str(phone_number)
-        otp_key = str(key)
-        print(otp_key)
-        return otp_key
+        try:
+            key = otp_generator()
+            phone_number = str(phone_number)
+            otp_key = str(key)
+            print(f"Generated OTP: {otp_key}")  # For debugging purposes
+
+            # Send OTP using Kavenegar
+            api = KavenegarAPI(settings.KAVENEGAR_API_KEY)  # Replace with your Kavenegar API key
+            params = {
+                'sender': settings.KAVENEGAR_SENDER,
+                'receptor': phone_number,
+                'message': f'Your OTP is: {otp_key}',
+            }
+            response = api.sms_send(params)
+            print(f"SMS Response: {response}")  # For debugging purposes
+
+            return otp_key
+        except APIException as e:
+            print(f"Kavenegar API Exception: {e}")
+            return False
+        except HTTPException as e:
+            print(f"Kavenegar HTTP Exception: {e}")
+            return False
+        except Exception as e:
+            print(f"Error sending OTP: {e}")
+            return False
     return False
 
 class ValidatePhoneSendOTP(APIView):
     def get(self, request, phone_number, role=None, *args, **kwargs):
         try:
-            # اگر role ارسال نشده باشد، به صورت پیش‌فرض CLIENT قرار می‌گیرد
+            # If role is not provided, set it to CLIENT by default
             role = role if role else User.Role.CLIENT
             
             if phone_number:
                 phone_number = str(phone_number).strip()
                 
-                # اگر کاربری با این شماره موجود نباشد، ایجادش کنید
+                # Get or create the user based on the phone number
                 user, created = User.objects.get_or_create(phone_number=phone_number)
 
-                # اگر کاربر جدید است، نقش را تنظیم کنید
+                # If the user is newly created, set their role
                 if created:
                     user.role = role
                     user.save()
                 
-                # ارسال OTP و ذخیره زمان ارسال
+                # Send OTP and store the time it was sent
                 new_otp = send_otp(phone_number)
-                user.otp = new_otp
-                user.otp_created_at = timezone.now()
-                user.save()
+                if new_otp:
+                    user.otp = new_otp
+                    user.otp_created_at = timezone.now()
+                    user.save()
 
-                return Response({
-                    'message': 'OTP sent successfully',
-                    'status': status.HTTP_200_OK,
-                })
+                    return Response({
+                        'message': 'OTP sent successfully',
+                        'status': status.HTTP_200_OK,
+                    })
+                else:
+                    return Response({
+                        'message': 'Failed to send OTP',
+                        'status': status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    })
             else:
                 return Response({
                     'message': 'Phone number is required',
