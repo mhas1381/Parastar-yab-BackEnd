@@ -2,22 +2,42 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
 from accounts.models import ClientProfile, NurseProfile
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from accounts.models import NurseProfile
+from .models import Request
+
+
+class Rating(models.Model):
+    nurse = models.ForeignKey(
+        NurseProfile, on_delete=models.CASCADE, related_name="ratings"
+    )
+    request = models.ForeignKey(
+        Request, on_delete=models.CASCADE, related_name="ratings"
+    )
+    rating = models.FloatField(
+        validators=[MinValueValidator(0.0), MaxValueValidator(10.0)]
+    )
+    comment = models.TextField(null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Rating {self.rating} for {self.nurse.user.username}"
 
 
 class Request(models.Model):
     STATUS_CHOICES = [
-        ('PENDING', 'در انتظار'),
-        ('ACCEPTED', 'پذیرفته شده'),
-        ('REJECTED', 'رد شده'),
-        ('COMPLETED', 'تکمیل شده'),
-        ('CANCELLED', 'لغو شده'),
-        ('CLINET_CONFIRMATION', 'انتظار برای تایید متقاضی'),
-        ('NURSING', 'پرستاری در حال انجام'),
+        ("PENDING", "در انتظار"),
+        ("ACCEPTED", "پذیرفته شده"),
+        ("REJECTED", "رد شده"),
+        ("COMPLETED", "تکمیل شده"),
+        ("CANCELLED", "لغو شده"),
+        ("NURSING", "پرستاری در حال انجام"),
     ]
 
     CATEGORY_CHOICES = [
-        ('CHILD', 'فرزند خردسال'),
-        ('ELDERLY', 'والدین کهنسال'),
+        ("CHILD", "فرزند خردسال"),
+        ("ELDERLY", "والدین کهنسال"),
     ]
 
     client = models.ForeignKey(
@@ -38,7 +58,7 @@ class Request(models.Model):
     duration_hours = models.FloatField(
         validators=[MinValueValidator(0.0)],
         default=1.0,
-        help_text="مدت زمان درخواست به ساعت"
+        help_text="مدت زمان درخواست به ساعت",
     )
     request_end = models.DateTimeField()
     address = models.TextField(null=True, blank=True)
@@ -130,4 +150,4 @@ class Request(models.Model):
 
 
     class Meta:
-        ordering = ['-created_date']
+        ordering = ["-created_date"]

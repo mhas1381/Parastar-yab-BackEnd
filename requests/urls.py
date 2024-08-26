@@ -3,7 +3,7 @@ mapping the urls for request app
 '''
 from django.urls import path
 from requests.views import *
-
+from .views import NurseRatingView
 
 urlpatterns = [
     path('available/nurses/', NurseList.as_view(), name='available_nurses'),
@@ -16,4 +16,6 @@ urlpatterns = [
     path('nurse/request/history/<int:pk>/', NurseFinishedRequests.as_view(), name='nurse_request_history_detail'),
     path('nurse/request/history/', NurseFinishedRequests.as_view(), name='nurse_request_history'),
     path('nurse/salary/', NurseSetSallary.as_view(), name='nurse_salary')
+    path('nurse/<int:nurse_id>/rating/', NurseRatingView.as_view(), name='nurse-rating'),
+
 ]
