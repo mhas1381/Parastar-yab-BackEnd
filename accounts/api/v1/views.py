@@ -26,8 +26,8 @@ def send_otp(phone_number):
             # Send OTP using Kavenegar
             api = KavenegarAPI(settings.KAVENEGAR_API_KEY)  # Replace with your Kavenegar API key
             params = {
-                'sender': '1000596446',
-                'receptor': settings.KAVENEGAR_SENDER,
+                'sender': settings.KAVENEGAR_SENDER,
+                'receptor': phone_number,
                 'message': f'Your OTP is: {otp_key}',
             }
             response = api.sms_send(params)
