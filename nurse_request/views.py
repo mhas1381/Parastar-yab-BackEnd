@@ -63,7 +63,7 @@ class ClientRequestAPIView(APIView):
         )
 
         if not in_proccess_requests:
-            return Response({"meessage": "mo request yet"}, status=status.HTTP_200_OK)
+            return Response({"meessage": "no request yet"}, status=status.HTTP_200_OK)
 
         serializer = RequestSerializer(in_proccess_requests, many=True)
 
@@ -91,20 +91,29 @@ class ClientRequestAPIView(APIView):
         """Adding new request."""
         clinet_profile = ClientProfile.objects.filter(user=request.user).first()
         if not clinet_profile:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-
-        payload = {"client": clinet_profile}
-
-        payload.update(request.data)
-
-        serializer = RequestSerializer(data=payload)
-        if not serializer.is_valid():
             return Response(
-                serializer.error_messages, status=status.HTTP_400_BAD_REQUEST
+               status=status.HTTP_401_UNAUTHORIZED 
             )
-        serializer.save()
+
+        nurse_profile = NurseProfile.objects.filter(id=request.data['nurse']).first()
+        if not nurse_profile:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        payload = {
+            'client': clinet_profile
+        }
+        payload.update(request.data)
+        payload["nurse"] = nurse_profile
+
+
+        new_request = Request.objects.create(**payload)
+        serializer = RequestSerializer(new_request)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 
     def put(self, request, pk=None, *args, **kwargs):
         """Changing the situation of the requests."""
@@ -115,12 +124,15 @@ class ClientRequestAPIView(APIView):
                 {"message": "you dont have any requests"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        
 
         if request_object.update_status(request.data["status"], request.user.role):
 
             if request.data["rate"]:
                 request_object.rate = request.data["rate"]
                 request_object.save()
+            else:
+                return Response({'message': 'you should insert rate'}, status=status.HTTP_400_BAD_REQUEST)
 
             serializer = RequestSerializer(request_object)
             return Response(serializer.data)
@@ -166,11 +178,15 @@ class NurseList(APIView):
 
     def get(self, request, *args, **kwargs):
 
-        available_nurses = (
-            NurseProfile.objects.filter(is_working=False)
-            .order_by("-average_rate")
-            .values("user__first_name", "user__last_name", "average_rate")
-        )
+        available_nurses = NurseProfile.objects.filter(is_working=False).order_by("-average_rate").values(
+                "id", 
+                "user__first_name", 
+                "user__last_name", 
+                "average_rate",
+                "salary_per_hour"
+            )
+        
+        print(available_nurses)
         serializer = NurseListSerializer(available_nurses, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

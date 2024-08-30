@@ -19,11 +19,20 @@ class RequestSerializer(serializers.ModelSerializer):
 
 
 
+class RequstPostSerializer(serializers.Serializer):
+    '''Serialize data to post a request.'''
+    nurse = serializers.IntegerField()
+
+
+
+
 class NurseListSerializer(serializers.Serializer):
     """Serilizing nurse profile objects."""
+    id = serializers.IntegerField()
     user__first_name = serializers.CharField()
     user__last_name = serializers.CharField()
     average_rate = serializers.FloatField()
+    salary_per_hour = serializers.FloatField()
 
 
 

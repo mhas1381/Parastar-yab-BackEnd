@@ -55,14 +55,11 @@ class CustomUserAdmin(UserAdmin):
 
 
 
-# class NurseProfilesAdmin(admin)
-    def get_queryset(self, request):
-        queryset = super().get_queryset(request)
-        # You may want to filter queryset by role, if needed
-        return queryset
+class NurseProfilesAdmin(admin.ModelAdmin):
+    list_display = ['id', 'is_working']
 
 
 admin.site.register(User, CustomUserAdmin)
 # You can register additional profiles if necessary
 admin.site.register(ClientProfile)
-admin.site.register(NurseProfile)   # Same here
+admin.site.register(NurseProfile, NurseProfilesAdmin)   # Same here

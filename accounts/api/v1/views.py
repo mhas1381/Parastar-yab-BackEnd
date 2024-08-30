@@ -8,7 +8,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import RefreshToken
-from kavenegar import *
+# from kavenegar import *
 from .serializers import *
 from .utils import otp_generator
 from accounts.models import *
@@ -17,33 +17,37 @@ User = get_user_model()
 
 def send_otp(phone_number):
     if phone_number:
+        pass
         try:
             key = otp_generator()
             phone_number = str(phone_number)
             otp_key = str(key)
             print(f"Generated OTP: {otp_key}")  # For debugging purposes
 
-            # Send OTP using Kavenegar
-            api = KavenegarAPI(settings.KAVENEGAR_API_KEY)  # Replace with your Kavenegar API key
-            params = {
-                'sender': settings.KAVENEGAR_SENDER,
-                'receptor': phone_number,
-                'message': f'Your OTP is: {otp_key}',
-            }
-            response = api.sms_send(params)
-            print(f"SMS Response: {response}")  # For debugging purposes
+    #         # Send OTP using Kavenegar
+    #         api = KavenegarAPI(settings.KAVENEGAR_API_KEY)  # Replace with your Kavenegar API key
+    #         params = {
+    #             'sender': settings.KAVENEGAR_SENDER,
+    #             'receptor': phone_number,
+    #             'message': f'Your OTP is: {otp_key}',
+    #         }
+    #         response = api.sms_send(params)
+    #         print(f"SMS Response: {response}")  # For debugging purposes
 
             return otp_key
-        except APIException as e:
-            print(f"Kavenegar API Exception: {e}")
-            return False
-        except HTTPException as e:
-            print(f"Kavenegar HTTP Exception: {e}")
-            return False
-        except Exception as e:
-            print(f"Error sending OTP: {e}")
-            return False
-    return False
+    #     except APIException as e:
+    #         print(f"Kavenegar API Exception: {e}")
+    #         return False
+    #     except HTTPException as e:
+    #         print(f"Kavenegar HTTP Exception: {e}")
+    #         return False
+    #     except Exception as e:
+    #         print(f"Error sending OTP: {e}")
+    #         return False
+    # return False
+        except:
+            print('there is otp problem')
+
 
 class ValidatePhoneSendOTP(APIView):
     def get(self, request, phone_number, role=None, *args, **kwargs):

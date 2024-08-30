@@ -5,24 +5,7 @@ from accounts.models import ClientProfile, NurseProfile
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from accounts.models import NurseProfile
-from .models import Request
-
-
-class Rating(models.Model):
-    nurse = models.ForeignKey(
-        NurseProfile, on_delete=models.CASCADE, related_name="ratings"
-    )
-    request = models.ForeignKey(
-        Request, on_delete=models.CASCADE, related_name="ratings"
-    )
-    rating = models.FloatField(
-        validators=[MinValueValidator(0.0), MaxValueValidator(10.0)]
-    )
-    comment = models.TextField(null=True, blank=True)
-    created_date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Rating {self.rating} for {self.nurse.user.username}"
+# from .models import Request
 
 
 class Request(models.Model):
@@ -32,6 +15,7 @@ class Request(models.Model):
         ("REJECTED", "رد شده"),
         ("COMPLETED", "تکمیل شده"),
         ("CANCELLED", "لغو شده"),
+        ("CLINET_CONFIRMATION", "تنتظار برای تایید متقاضی"),
         ("NURSING", "پرستاری در حال انجام"),
     ]
 
@@ -51,14 +35,14 @@ class Request(models.Model):
         related_name="requests",
     )
     created_date = models.DateTimeField(auto_now_add=True)
-    request_for_date = models.DateTimeField()
-    request_start = models.DateTimeField()
+    request_for_date = models.DateTimeField(null=True, blank=True)
+    request_start = models.DateTimeField(null=True, blank=True)
     duration_hours = models.FloatField(
         validators=[MinValueValidator(0.0)],
         default=1.0,
         help_text="مدت زمان درخواست به ساعت",
     )
-    request_end = models.DateTimeField()
+    request_end = models.DateTimeField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
@@ -145,6 +129,24 @@ class Request(models.Model):
             return True
 
         return False
-
+    
+    
     class Meta:
         ordering = ["-created_date"]
+
+
+class Rating(models.Model):
+    nurse = models.ForeignKey(
+        NurseProfile, on_delete=models.CASCADE, related_name="ratings"
+    )
+    request = models.ForeignKey(
+        Request, on_delete=models.CASCADE, related_name="ratings"
+    )
+    rating = models.FloatField(
+        validators=[MinValueValidator(0.0), MaxValueValidator(10.0)]
+    )
+    comment = models.TextField(null=True, blank=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Rating {self.rating} for {self.nurse.user.username}"
