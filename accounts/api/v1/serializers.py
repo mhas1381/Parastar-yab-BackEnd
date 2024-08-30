@@ -81,12 +81,23 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         
         return token
 
-class ClientProfileSerializer(serializers.ModelSerializer):
+class CreateClientProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientProfile
-        fields = ['id', 'user']
+        fields = ['id']  # می‌توانید فیلدهای دیگر را هم اضافه کنید
 
-class NurseProfileSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        user = self.context['request'].user  # دسترسی به کاربر فعلی
+        # در اینجا نیازی به وارد کردن user نیست چون پروفایل به کاربر فعلی متصل است
+        profile = ClientProfile.objects.create(user=user)
+        return profile
+
+class CreateNurseProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = NurseProfile
-        fields = ['id', 'user', 'nurse_id', 'additional_info', 'salary_per_hour', 'practical_auth', 'is_working', 'average_rate']
+        fields = ['nurse_id', 'additional_info', 'salary_per_hour', 'practical_auth', 'is_working']
+
+    def create(self, validated_data):
+        user = self.context['request'].user  # دسترسی به کاربر فعلی
+        profile = NurseProfile.objects.create(user=user, **validated_data)
+        return profile

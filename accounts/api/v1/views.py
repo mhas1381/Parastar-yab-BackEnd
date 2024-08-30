@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework import viewsets, status,permissions
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from django.contrib.auth import get_user_model
@@ -8,6 +9,7 @@ from datetime import timedelta
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import generics
 # from kavenegar import *
 from .serializers import *
 from .utils import otp_generator
@@ -194,10 +196,20 @@ class UserUpdateView(viewsets.ModelViewSet):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
-class ClientProfileViewSet(viewsets.ModelViewSet):
-    queryset = ClientProfile.objects.all()
-    serializer_class = ClientProfileSerializer
+class CreateClientProfileApiView(generics.CreateAPIView):
+    serializer_class = CreateClientProfileSerializer
+    permission_classes = [IsAuthenticated]  # اطمینان از احراز هویت کاربر
 
-class NurseProfileViewSet(viewsets.ModelViewSet):
-    queryset = NurseProfile.objects.all()
-    serializer_class = NurseProfileSerializer
+    def perform_create(self, serializer):
+        # پروفایل را ذخیره می‌کند
+        profile = serializer.save()
+        return Response({"message": "Profile created successfully."}, status=status.HTTP_201_CREATED)
+
+class CreateNurseProfileApiView(generics.CreateAPIView):
+    serializer_class = CreateNurseProfileSerializer
+    permission_classes = [IsAuthenticated]  # اطمینان از احراز هویت کاربر
+
+    def perform_create(self, serializer):
+        # پروفایل را ذخیره می‌کند
+        profile = serializer.save()
+        return Response({"message": "Nurse profile created successfully."}, status=status.HTTP_201_CREATED)

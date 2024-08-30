@@ -1,11 +1,9 @@
 from django.urls import path,include
-from rest_framework.routers import DefaultRouter
-from ..views import ClientProfileViewSet, NurseProfileViewSet
-
-router = DefaultRouter()
-router.register(r'client_profiles', ClientProfileViewSet)
-router.register(r'nurse_profiles', NurseProfileViewSet)
+from ..views import CreateClientProfileApiView, CreateNurseProfileApiView
 
 urlpatterns = [
-    path('', include(router.urls)),
+
+    path('client-profile/', CreateClientProfileApiView.as_view(), name='create-client-profile'),
+    path('nurse-profile/', CreateNurseProfileApiView.as_view(), name='create-nurse-profile'),
+
 ]
