@@ -15,7 +15,7 @@ class Request(models.Model):
         ("REJECTED", "رد شده"),
         ("COMPLETED", "تکمیل شده"),
         ("CANCELLED", "لغو شده"),
-        ("CLINET_CONFIRMATION", "تنتظار برای تایید متقاضی"),
+        ("CLINET_CONFIRMATION", "انتظار برای تایید متقاضی"),
         ("NURSING", "پرستاری در حال انجام"),
     ]
 
@@ -119,11 +119,15 @@ class Request(models.Model):
             and role == "CLIENT"
             and self.status == "CLINET_CONFIRMATION"
         ):
+            if not self.rate:
+                raise ValidationError("Rate must be provided before completing the request.")
+
             self.status = "COMPLETED"
             self.save()
 
             nurse = self.nurse
             nurse.is_working = False
+            nurse.update_average_rating()  # به‌روزرسانی میانگین نمرات پرستار
             nurse.save()
 
             return True

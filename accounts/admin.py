@@ -56,7 +56,7 @@ class CustomUserAdmin(UserAdmin):
 
 
 class NurseProfilesAdmin(admin.ModelAdmin):
-    list_display = ['id',"salary_per_hour" ,'is_working']
+    list_display = ['id',"average_rate","salary_per_hour" ,'is_working']
 
 
 admin.site.register(User, CustomUserAdmin)
