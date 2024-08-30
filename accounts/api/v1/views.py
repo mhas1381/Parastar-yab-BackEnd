@@ -50,23 +50,24 @@ def send_otp(phone_number):
 
 
 class ValidatePhoneSendOTP(APIView):
-    def get(self, request, phone_number, role=None, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         try:
-            # If role is not provided, set it to CLIENT by default
-            role = role if role else User.Role.CLIENT
+            # دریافت شماره تلفن و نقش از درخواست
+            phone_number = request.data.get('phone_number')
+            role = request.data.get('role', User.Role.CLIENT)  # به صورت پیش‌فرض CLIENT
             
             if phone_number:
                 phone_number = str(phone_number).strip()
-                
-                # Get or create the user based on the phone number
+
+                # گرفتن یا ساختن کاربر بر اساس شماره تلفن
                 user, created = User.objects.get_or_create(phone_number=phone_number)
 
-                # If the user is newly created, set their role
+                # اگر کاربر تازه ساخته شده است، نقش را تنظیم کنید
                 if created:
                     user.role = role
                     user.save()
                 
-                # Send OTP and store the time it was sent
+                # ارسال OTP و ذخیره‌ی زمان ارسال
                 new_otp = send_otp(phone_number)
                 if new_otp:
                     user.otp = new_otp
