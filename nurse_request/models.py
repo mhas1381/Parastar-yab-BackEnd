@@ -133,20 +133,3 @@ class Request(models.Model):
     
     class Meta:
         ordering = ["-created_date"]
-
-
-class Rating(models.Model):
-    nurse = models.ForeignKey(
-        NurseProfile, on_delete=models.CASCADE, related_name="ratings"
-    )
-    request = models.ForeignKey(
-        Request, on_delete=models.CASCADE, related_name="ratings"
-    )
-    rating = models.FloatField(
-        validators=[MinValueValidator(0.0), MaxValueValidator(10.0)]
-    )
-    comment = models.TextField(null=True, blank=True)
-    created_date = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Rating {self.rating} for {self.nurse.user.username}"
