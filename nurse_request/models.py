@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 from accounts.models import ClientProfile, NurseProfile
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from accounts.models import NurseProfile
 # from .models import Request
 
@@ -105,21 +107,13 @@ class Request(models.Model):
             self.save()
             return True
 
-        elif (
-            status == "CLINET_CONFIRMATION"
-            and role == "NURSE"
-            and self.status == "NURSING"
-        ):
+        elif status == "CLINET_CONFIRMATION" and role == "NURSE" and self.status == "NURSING":
             self.status = "CLINET_CONFIRMATION"
             self.save()
             return True
 
-        elif (
-            status == "COMPLETED"
-            and role == "CLIENT"
-            and self.status == "CLINET_CONFIRMATION"
-        ):
-            if not self.rate:
+        elif status == "COMPLETED" and role == "CLIENT" and self.status == "CLINET_CONFIRMATION":
+            if self.rate is None:
                 raise ValidationError("Rate must be provided before completing the request.")
 
             self.status = "COMPLETED"
@@ -133,7 +127,20 @@ class Request(models.Model):
             return True
 
         return False
-    
-    
+        
+        
     class Meta:
         ordering = ["-created_date"]
+
+
+# @receiver(post_save, sender=Request)
+# def update_nurse_average_rate(sender, instance, created, **kwargs):
+#     """
+#     This function updates the average rating for a nurse when a request is completed by a client.
+#     """
+#     if instance.status == "COMPLETED" and instance.rate:
+#         nurse = instance.nurse
+#         total_ratings = nurse.requests.filter(status="COMPLETED").count()
+#         total_sum = sum(request.rate for request in nurse.requests.filter(status="COMPLETED"))
+#         nurse.average_rate = round(total_sum / total_ratings) if total_ratings > 0 else 0.0
+#         nurse.save()
