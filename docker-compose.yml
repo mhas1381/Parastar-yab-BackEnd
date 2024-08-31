@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: db
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: parastar_yab
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 1234
+    networks:
+      - parastaryab_network
+
+  backend:
+    container_name: backend
+    build: .
+    image: parastaryab_backend:latest
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn core.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - static_data:/app/static
+      - media_data:/app/media
+      - pip_cache:/root/.cache/pip
+    env_file:
+      - .env_production
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - parastaryab_network
+
+volumes:
+  postgres_data:
+  static_data:
+  media_data:
+  pip_cache:
+
+networks:
+  parastaryab_network:
