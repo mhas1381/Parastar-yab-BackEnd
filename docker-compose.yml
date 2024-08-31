@@ -12,6 +12,7 @@ services:
       POSTGRES_PASSWORD: 1234
     networks:
       - parastaryab_network
+    restart: always
 
   backend:
     container_name: backend
@@ -33,6 +34,7 @@ services:
       - db
     networks:
       - parastaryab_network
+    restart: always
 
 volumes:
   postgres_data:
