@@ -15,5 +15,6 @@ urlpatterns = [
     path('nurse/request/', NurseRequestsAPIView.as_view(), name='nurse_request'),
     path('nurse/request/history/<int:pk>/', NurseFinishedRequests.as_view(), name='nurse_request_history_detail'),
     path('nurse/request/history/', NurseFinishedRequests.as_view(), name='nurse_request_history'),
-    path('nurse/salary/', NurseSetSallary.as_view(), name='nurse_salary')
+    path('nurse/salary/', NurseSetSallary.as_view(), name='nurse_salary'),
+    path('top-nurses/', TopNursesAPIView.as_view(), name='top_nurses'),
 ]

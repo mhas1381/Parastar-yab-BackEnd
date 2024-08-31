@@ -291,3 +291,16 @@ class NurseFinishedRequests(APIView):
         serializer = RequestSerializer(finished_request)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class TopNursesAPIView(APIView):
+    def get(self, request):
+        top_nurses = NurseProfile.objects.order_by('-average_rate')[:10]
+        nurses_data = [
+            {
+                "id": nurse.id,
+                "name": nurse.user.get_full_name(),  # Assuming your User model has a get_full_name method
+                "average_rate": nurse.average_rate,
+            }
+            for nurse in top_nurses
+        ]
+        return Response(nurses_data, status=status.HTTP_200_OK)
