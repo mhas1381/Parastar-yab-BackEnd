@@ -70,8 +70,8 @@ class Request(models.Model):
         if self.duration_hours <= 0:
             raise ValidationError("مدت زمان باید بیشتر از 0 ساعت باشد.")
 
-    def update_status(self, status, role):
-        """Changing the status based on the role and the previous status"""
+    def update_status(self, status, role, rate=None):
+        """Changing the status based on the role and the previous status."""
 
         if status == "ACCEPTED" and role == "NURSE" and self.status == "PENDING":
             nurse = self.nurse
@@ -89,7 +89,6 @@ class Request(models.Model):
 
             self.status = "ACCEPTED"
             self.save()
-
             return True
 
         elif status == "REJECTED" and role == "NURSE" and self.status == "PENDING":
@@ -113,34 +112,37 @@ class Request(models.Model):
             return True
 
         elif status == "COMPLETED" and role == "CLIENT" and self.status == "CLINET_CONFIRMATION":
-            if self.rate is None:
-                raise ValidationError("Rate must be provided before completing the request.")
+            # Set the rate if provided
+            if rate is not None:
+                self.rate = rate
+            # else:
+            #     raise ValidationError("Rate must be provided before completing the request.")
 
+            # Update the status to COMPLETED
             self.status = "COMPLETED"
             self.save()
 
             nurse = self.nurse
             nurse.is_working = False
-            nurse.update_average_rating()  # به‌روزرسانی میانگین نمرات پرستار
             nurse.save()
 
             return True
 
         return False
-        
+
         
     class Meta:
         ordering = ["-created_date"]
 
 
-# @receiver(post_save, sender=Request)
-# def update_nurse_average_rate(sender, instance, created, **kwargs):
-#     """
-#     This function updates the average rating for a nurse when a request is completed by a client.
-#     """
-#     if instance.status == "COMPLETED" and instance.rate:
-#         nurse = instance.nurse
-#         total_ratings = nurse.requests.filter(status="COMPLETED").count()
-#         total_sum = sum(request.rate for request in nurse.requests.filter(status="COMPLETED"))
-#         nurse.average_rate = round(total_sum / total_ratings) if total_ratings > 0 else 0.0
-#         nurse.save()
+@receiver(post_save, sender=Request)
+def update_nurse_average_rate(sender, instance, created, **kwargs):
+    """
+    This function updates the average rating for a nurse when a request is completed by a client.
+    """
+    if instance.status == "COMPLETED" and instance.rate:
+        nurse = instance.nurse
+        total_ratings = nurse.requests.filter(status="COMPLETED").count()
+        total_sum = sum(request.rate for request in nurse.requests.filter(status="COMPLETED"))
+        nurse.average_rate = round(total_sum / total_ratings) if total_ratings > 0 else 0.0
+        nurse.save()
