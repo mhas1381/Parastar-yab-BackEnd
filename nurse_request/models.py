@@ -7,6 +7,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from accounts.models import NurseProfile
+
 # from .models import Request
 
 
@@ -17,6 +18,7 @@ class Request(models.Model):
         ("REJECTED", "رد شده"),
         ("COMPLETED", "تکمیل شده"),
         ("CANCELLED", "لغو شده"),
+        ("PAYMENT", "پرداخت"),
         ("CLINET_CONFIRMATION", "انتظار برای تایید متقاضی"),
         ("NURSING", "پرستاری در حال انجام"),
     ]
@@ -61,6 +63,7 @@ class Request(models.Model):
     category = models.CharField(
         max_length=10, choices=CATEGORY_CHOICES, default="CHILD"
     )
+    payment = models.FloatField(null=True, blank=True)
 
     def __str__(self):
         return f"درخواست {self.id} توسط {self.client.user.phone_number}"
@@ -70,10 +73,12 @@ class Request(models.Model):
         if self.duration_hours <= 0:
             raise ValidationError("مدت زمان باید بیشتر از 0 ساعت باشد.")
 
-    def update_status(self, status, role, rate=None):
+    def update_status(self, user_request, role):
         """Changing the status based on the role and the previous status."""
-
-        if status == "ACCEPTED" and role == "NURSE" and self.status == "PENDING":
+        print(self.status)
+        print(user_request['status'])
+        print(role)
+        if user_request['status'] == "ACCEPTED" and role == "NURSE" and self.status == "PENDING":
             nurse = self.nurse
             nurse.is_working = True
             nurse.save()
@@ -91,32 +96,44 @@ class Request(models.Model):
             self.save()
             return True
 
-        elif status == "REJECTED" and role == "NURSE" and self.status == "PENDING":
+        elif user_request['status'] == "REJECTED" and role == "NURSE" and self.status == "PENDING":
             self.status = "REJECTED"
             self.save()
             return True
 
-        elif status == "CANCELLED" and role == "CLIENT" and self.status == "PENDING":
+        elif user_request['status'] == "CANCELLED" and role == "CLIENT" and self.status == "PENDING":
             self.status = "CANCELLED"
             self.save()
             return True
 
-        elif status == "NURSING" and role == "NURSE" and self.status == "ACCEPTED":
+        elif user_request['status'] == "NURSING" and role == "NURSE" and self.status == "ACCEPTED":
             self.status = "NURSING"
             self.save()
             return True
 
-        elif status == "CLINET_CONFIRMATION" and role == "NURSE" and self.status == "NURSING":
-            self.status = "CLINET_CONFIRMATION"
+        elif user_request['status'] == "PAYMENT" and role == "NURSE" and self.status == "NURSING":
+            self.status = "PAYMENT"
             self.save()
             return True
 
-        elif status == "COMPLETED" and role == "CLIENT" and self.status == "CLINET_CONFIRMATION":
+        elif user_request['status'] == "CLINET_CONFIRMATION" and role == "CLIENT" and self.status == 'PAYMENT':
+            self.status = "CLINET_CONFIRMATION"
+            self.save()
+
+            from transactions.models import  Transaction
+            Transaction.payment(self)
+            
+            self.status = "CLINET_CONFIRMATION"
+            self.save()
+            
+            return True
+
+        elif user_request['status'] == "COMPLETED" and role == "CLIENT" and self.status == "CLINET_CONFIRMATION":
             # Set the rate if provided
-            if rate is not None:
-                self.rate = rate
-            # else:
-            #     raise ValidationError("Rate must be provided before completing the request.")
+            if user_request['rate'] is not None:
+                self.rate = user_request['rate']
+            else:
+                raise ValidationError("Rate must be provided before completing the request.")
 
             # Update the status to COMPLETED
             self.status = "COMPLETED"
@@ -127,7 +144,7 @@ class Request(models.Model):
             nurse.save()
 
             return True
-
+        print('kikika')
         return False
 
         
