@@ -116,7 +116,7 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
                 token = CustomTokenObtainPairSerializer.get_token(user)
 
                 # بررسی اینکه آیا کاربر پروفایل خود را کامل کرده است یا نه
-                is_new = not all(user.password)
+                is_new = not all([user.first_name])
 
                 response_data = {
                     'status': True,
@@ -128,7 +128,8 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
                         'phone_number': token['phone_number'],  # اضافه کردن شماره موبایل به پاسخ
                         'id': token['id'],  # اضافه کردن id به پاسخ
                     },
-                    'is_new': is_new
+                    'is_new': is_new,
+                    'is_verified': user.is_verified
                 }
 
                 return Response(response_data, status=status.HTTP_200_OK)
