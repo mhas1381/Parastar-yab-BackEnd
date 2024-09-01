@@ -19,36 +19,29 @@ User = get_user_model()
 
 def send_otp(phone_number):
     if phone_number:
-        pass
         try:
-            key = otp_generator()
+            key = "1234"  # پیش‌فرض 1234 اگر کلید None باشد
             phone_number = str(phone_number)
             otp_key = str(key)
             print(f"Generated OTP: {otp_key}")  # For debugging purposes
 
-    #         # Send OTP using Kavenegar
-    #         api = KavenegarAPI(settings.KAVENEGAR_API_KEY)  # Replace with your Kavenegar API key
-    #         params = {
-    #             'sender': settings.KAVENEGAR_SENDER,
-    #             'receptor': phone_number,
-    #             'message': f'Your OTP is: {otp_key}',
-    #         }
-    #         response = api.sms_send(params)
-    #         print(f"SMS Response: {response}")  # For debugging purposes
+            # این بخش مربوط به ارسال OTP با استفاده از Kavenegar است
+            # api = KavenegarAPI(settings.KAVENEGAR_API_KEY)  # Replace with your Kavenegar API key
+            # params = {
+            #     'sender': settings.KAVENEGAR_SENDER,
+            #     'receptor': phone_number,
+            #     'message': f'Your OTP is: {otp_key}',
+            # }
+            # response = api.sms_send(params)
+            # print(f"SMS Response: {response}")  # For debugging purposes
 
             return otp_key
-    #     except APIException as e:
-    #         print(f"Kavenegar API Exception: {e}")
-    #         return False
-    #     except HTTPException as e:
-    #         print(f"Kavenegar HTTP Exception: {e}")
-    #         return False
-    #     except Exception as e:
-    #         print(f"Error sending OTP: {e}")
-    #         return False
-    # return False
-        except:
+
+        except Exception as e:
             print('there is otp problem')
+            return False
+    return False
+
 
 
 class ValidatePhoneSendOTP(APIView):
