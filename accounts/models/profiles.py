@@ -22,7 +22,7 @@ class NurseProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     nurse_id = models.IntegerField(null=True, blank=True)
     additional_info = models.TextField(null=True, blank=True)
-    salary_per_hour = models.FloatField(null=True, blank=True)
+    salary_per_hour = models.FloatField(null=True, blank=True , default=100000)
     practical_auth = models.CharField(
         choices=practical_auth_status, default="UP", max_length=20
     )
