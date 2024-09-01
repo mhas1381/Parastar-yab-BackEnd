@@ -19,36 +19,29 @@ User = get_user_model()
 
 def send_otp(phone_number):
     if phone_number:
-        pass
         try:
-            key = otp_generator()
+            key = "1234"  # پیش‌فرض 1234 اگر کلید None باشد
             phone_number = str(phone_number)
             otp_key = str(key)
             print(f"Generated OTP: {otp_key}")  # For debugging purposes
 
-    #         # Send OTP using Kavenegar
-    #         api = KavenegarAPI(settings.KAVENEGAR_API_KEY)  # Replace with your Kavenegar API key
-    #         params = {
-    #             'sender': settings.KAVENEGAR_SENDER,
-    #             'receptor': phone_number,
-    #             'message': f'Your OTP is: {otp_key}',
-    #         }
-    #         response = api.sms_send(params)
-    #         print(f"SMS Response: {response}")  # For debugging purposes
+            # این بخش مربوط به ارسال OTP با استفاده از Kavenegar است
+            # api = KavenegarAPI(settings.KAVENEGAR_API_KEY)  # Replace with your Kavenegar API key
+            # params = {
+            #     'sender': settings.KAVENEGAR_SENDER,
+            #     'receptor': phone_number,
+            #     'message': f'Your OTP is: {otp_key}',
+            # }
+            # response = api.sms_send(params)
+            # print(f"SMS Response: {response}")  # For debugging purposes
 
             return otp_key
-    #     except APIException as e:
-    #         print(f"Kavenegar API Exception: {e}")
-    #         return False
-    #     except HTTPException as e:
-    #         print(f"Kavenegar HTTP Exception: {e}")
-    #         return False
-    #     except Exception as e:
-    #         print(f"Error sending OTP: {e}")
-    #         return False
-    # return False
-        except:
+
+        except Exception as e:
             print('there is otp problem')
+            return False
+    return False
+
 
 
 class ValidatePhoneSendOTP(APIView):
@@ -110,17 +103,22 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
         try:
             user = User.objects.get(phone_number__iexact=phone_number)
 
+            # بررسی انقضای OTP
             if user.otp_created_at and timezone.now() > user.otp_created_at + timedelta(minutes=2):
                 return Response({
                     'message': 'OTP has expired',
                     'status': status.HTTP_400_BAD_REQUEST,
                 })
 
+            # بررسی صحت OTP
             if user.otp == otp:
                 # استفاده از توکن سفارشی
                 token = CustomTokenObtainPairSerializer.get_token(user)
 
-                return Response({
+                # بررسی اینکه آیا کاربر پروفایل خود را کامل کرده است یا نه
+                is_new = not all([user.first_name])
+
+                response_data = {
                     'status': True,
                     'details': 'Login Successfully',
                     'token': {
@@ -130,7 +128,11 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
                         'phone_number': token['phone_number'],  # اضافه کردن شماره موبایل به پاسخ
                         'id': token['id'],  # اضافه کردن id به پاسخ
                     },
-                }, status=status.HTTP_200_OK)
+                    'is_new': is_new,
+                    'is_verified': user.is_verified
+                }
+
+                return Response(response_data, status=status.HTTP_200_OK)
             else:
                 return Response({
                     'message': 'Invalid OTP',

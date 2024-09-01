@@ -30,6 +30,7 @@ class NurseProfile(models.Model):
     average_rate = models.FloatField(
         validators=[MinValueValidator(0.0), MaxValueValidator(10.0)], default=0.0
     )
+    balance = models.FloatField(default=0)
 
     def calculate_average_rating(self):
         average = self.average_rate.aggregate(Avg("rating"))["rating__avg"]

@@ -1,7 +1,6 @@
 """
 views for request app
 """
-
 from accounts.models.profiles import NurseProfile, ClientProfile
 from accounts.models.users import User
 from rest_framework.views import APIView
@@ -58,7 +57,7 @@ class ClientRequestAPIView(APIView):
 
         client = ClientProfile.objects.filter(user=request.user).first()
         in_proccess_requests = Request.objects.filter(
-            status__in=["PENDING", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
+            status__in=["PENDING", "PAYMENT", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
             client=client,
         )
 
@@ -76,6 +75,7 @@ class ClientRequestAPIView(APIView):
             status__in=[
                 "PENDING",
                 "CLINET_CONFIRMATION",
+                "PAYMENT",
                 "ACCEPTED",
                 "NURSING",
             ],
@@ -102,11 +102,11 @@ class ClientRequestAPIView(APIView):
             )
         
         payload = {
-            'client': clinet_profile
+            'client': clinet_profile,
         }
         payload.update(request.data)
         payload["nurse"] = nurse_profile
-
+        payload["payment"] = request.data['duration_hours']*nurse_profile.salary_per_hour
 
         new_request = Request.objects.create(**payload)
         serializer = RequestSerializer(new_request)
@@ -125,19 +125,14 @@ class ClientRequestAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         
-
-        if request_object.update_status(request.data["status"], request.user.role):
-
-            if request.data["rate"]:
-                request_object.rate = request.data["rate"]
-                request_object.save()
-            else:
-                return Response({'message': 'you should insert rate'}, status=status.HTTP_400_BAD_REQUEST)
+        print(request.data)
+        if request_object.update_status(request.data, request.user.role):
 
             serializer = RequestSerializer(request_object)
             return Response(serializer.data)
 
         return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class ClientFinishedRequests(APIView):
@@ -171,6 +166,7 @@ class ClientFinishedRequests(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+
 class NurseList(APIView):
     """Getting all nurses not working right now"""
 
@@ -186,7 +182,6 @@ class NurseList(APIView):
                 "salary_per_hour"
             )
         
-        print(available_nurses)
         serializer = NurseListSerializer(available_nurses, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -210,9 +205,11 @@ class NurseRequestsAPIView(APIView):
             )
 
         on_going_requests = Request.objects.filter(
-            status__in=["PENDING", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
+            status__in=["PENDING", "PAYMENT", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
             nurse=nurse_profile,
         )
+        if not on_going_requests:
+            return Response({'message':'no requests yet.'})
 
         serializer = RequestSerializer(on_going_requests, many=True)
 
@@ -229,7 +226,7 @@ class NurseRequestsAPIView(APIView):
             )
 
         on_going_request = Request.objects.filter(
-            status__in=["PENDING", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
+            status__in=["PENDING", "PAYMENT", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
             nurse=nurse_profile,
             id=pk,
         ).first()
@@ -243,7 +240,10 @@ class NurseRequestsAPIView(APIView):
         nurse_profile = NurseProfile.objects.filter(user=request.user).first()
         request_object = Request.objects.filter(nurse=nurse_profile, id=pk).first()
 
-        if request_object.update_status(request.data["status"], request.user.role):
+        if not request_object:
+            return Response({'message':'reqeust id is wrong'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if request_object.update_status(request.data, request.user.role):
             serializer = RequestSerializer(request_object)
             return Response(serializer.data)
 
@@ -304,3 +304,4 @@ class TopNursesAPIView(APIView):
             for nurse in top_nurses
         ]
         return Response(nurses_data, status=status.HTTP_200_OK)
+    

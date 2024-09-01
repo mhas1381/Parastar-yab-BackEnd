@@ -60,7 +60,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         
         # بررسی عکس کارت ملی و تنظیم is_verified
-        if 'national_card_image' in validated_data and validated_data['national_card_image']:
+        if 'national_id' in validated_data and validated_data['national_id']:
             instance.is_verified = True
         
         # Update other fields

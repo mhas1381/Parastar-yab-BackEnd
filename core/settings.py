@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'accounts',
     'nurse_request',
+    'transactions'
 ]
 
 MIDDLEWARE = [
