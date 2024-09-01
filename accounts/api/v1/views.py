@@ -103,17 +103,22 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
         try:
             user = User.objects.get(phone_number__iexact=phone_number)
 
+            # بررسی انقضای OTP
             if user.otp_created_at and timezone.now() > user.otp_created_at + timedelta(minutes=2):
                 return Response({
                     'message': 'OTP has expired',
                     'status': status.HTTP_400_BAD_REQUEST,
                 })
 
+            # بررسی صحت OTP
             if user.otp == otp:
                 # استفاده از توکن سفارشی
                 token = CustomTokenObtainPairSerializer.get_token(user)
 
-                return Response({
+                # بررسی اینکه آیا کاربر پروفایل خود را کامل کرده است یا نه
+                is_new = not all(user.password)
+
+                response_data = {
                     'status': True,
                     'details': 'Login Successfully',
                     'token': {
@@ -123,7 +128,10 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
                         'phone_number': token['phone_number'],  # اضافه کردن شماره موبایل به پاسخ
                         'id': token['id'],  # اضافه کردن id به پاسخ
                     },
-                }, status=status.HTTP_200_OK)
+                    'is_new': is_new
+                }
+
+                return Response(response_data, status=status.HTTP_200_OK)
             else:
                 return Response({
                     'message': 'Invalid OTP',
