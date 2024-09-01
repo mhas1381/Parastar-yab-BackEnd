@@ -80,7 +80,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         Verify the user's national_id and set is_verified to True.
         """
-        if self.national_id and self.national_card_image:
+        if self.national_id :
             self.is_verified = True
         else:
             self.is_verified = False
