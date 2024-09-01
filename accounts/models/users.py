@@ -74,6 +74,22 @@ class User(AbstractBaseUser, PermissionsMixin):
         """
         full_name = f"{self.first_name} {self.last_name}"
         return full_name.strip()
+
+
+    def verify_user(self):
+        """
+        Verify the user's national_id and set is_verified to True.
+        """
+        if self.national_id and self.national_card_image:
+            self.is_verified = True
+        else:
+            self.is_verified = False
+
+    def save(self, *args, **kwargs):
+        # فراخوانی متد verify_user قبل از ذخیره کاربر
+        self.verify_user()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return self.phone_number
 
