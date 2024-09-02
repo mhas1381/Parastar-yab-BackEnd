@@ -65,8 +65,12 @@ class Request(models.Model):
     )
     payment = models.FloatField(null=True, blank=True)
 
+    other_information = models.JSONField(null=True, blank=True)
+
+    
     def __str__(self):
         return f"درخواست {self.id} توسط {self.client.user.phone_number}"
+    
 
     def clean(self):
         super().clean()
