@@ -67,7 +67,7 @@ class Request(models.Model):
 
     other_information = models.JSONField(null=True, blank=True)
 
-    
+
     def __str__(self):
         return f"درخواست {self.id} توسط {self.client.user.phone_number}"
     
@@ -79,9 +79,6 @@ class Request(models.Model):
 
     def update_status(self, user_request, role):
         """Changing the status based on the role and the previous status."""
-        print(self.status)
-        print(user_request['status'])
-        print(role)
         if user_request['status'] == "ACCEPTED" and role == "NURSE" and self.status == "PENDING":
             nurse = self.nurse
             nurse.is_working = True
@@ -148,7 +145,7 @@ class Request(models.Model):
             nurse.save()
 
             return True
-        print('kikika')
+        
         return False
 
         

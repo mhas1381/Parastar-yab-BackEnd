@@ -25,23 +25,19 @@ class NurseSetSallary(APIView):
         nurse.salary_per_hour = request.data["salary_per_hour"]
         nurse.save()
 
-        # except:
-        #     # print(float(request.data['salary_per_hour']))
-        #     return Response({'message':'we are her'}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({'salary': nurse.salary_per_hour})
+        return Response({'salary': nurse.salary_per_hour}, status=status.HTTP_200_OK)
 
     def get(self, request, *args, **kwargs):
         """Getting nurse salary."""
         user = User.objects.filter(pk=request.user.id).first()
-        nurse = (
-            NurseProfile.objects.filter(user=user)
-            .values("user__first_name", "user__last_name", "salary_per_hour")
-            .first()
-        )
-        serializer = NurseSeriliazr(nurse)
+        nurse = NurseProfile.objects.filter(user=user).values(
+            "user__first_name", 
+            "user__last_name", 
+            "salary_per_hour"
+        ).first()
 
-        return Response(serializer.data)
+        return Response({'salary': nurse}, status=status.HTTP_200_OK)
 
 
 class ClientRequestAPIView(APIView):
