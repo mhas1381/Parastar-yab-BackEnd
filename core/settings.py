@@ -166,3 +166,7 @@ CORS_ALLOW_ALL_ORIGINS = True
 # Kaveh Negar
 KAVENEGAR_API_KEY = config('KAVENEGAR_API_KEY')
 KAVENEGAR_SENDER = config('KAVENEGAR_SENDER')
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://api.parastaryab.arsham79.ir',
+]
