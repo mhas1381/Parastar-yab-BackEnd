@@ -198,7 +198,7 @@ class UserUpdateView(viewsets.ModelViewSet):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
-class CreateClientProfileApiView(generics.RetrieveUpdateAPIView):
+class CreateClientProfileApiView(generics.CreateAPIView):
     serializer_class = CreateClientProfileSerializer
     permission_classes = [IsAuthenticated]  # اطمینان از احراز هویت کاربر
 
@@ -211,15 +211,20 @@ class CreateClientProfileApiView(generics.RetrieveUpdateAPIView):
         profile = serializer.save(user=self.request.user)
         return Response({"message": "Profile created successfully."}, status=status.HTTP_201_CREATED)
 
-class CreateNurseProfileApiView(generics.RetrieveUpdateAPIView):
-    serializer_class = CreateNurseProfileSerializer
+class CreateClientProfileApiView(generics.CreateAPIView):
+    serializer_class = CreateClientProfileSerializer
     permission_classes = [IsAuthenticated]  # اطمینان از احراز هویت کاربر
-
-    def get_object(self):
-        # فرض می‌کنیم پروفایل با توجه به یوزر احراز هویت شده پیدا می‌شود
-        return self.request.user.nurseprofile
 
     def perform_create(self, serializer):
         # پروفایل را ذخیره می‌کند
-        profile = serializer.save(user=self.request.user)
+        profile = serializer.save()
+        return Response({"message": "Profile created successfully."}, status=status.HTTP_201_CREATED)
+
+class CreateNurseProfileApiView(generics.CreateAPIView):
+    serializer_class = CreateNurseProfileSerializer
+    permission_classes = [IsAuthenticated]  # اطمینان از احراز هویت کاربر
+
+    def perform_create(self, serializer):
+        # پروفایل را ذخیره می‌کند
+        profile = serializer.save()
         return Response({"message": "Nurse profile created successfully."}, status=status.HTTP_201_CREATED)
