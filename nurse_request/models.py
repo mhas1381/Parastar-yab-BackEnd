@@ -114,7 +114,7 @@ class Request(models.Model):
             
             self.status = "PAYMENT"
             self.save()
-
+            return True
 
         elif user_request['status'] == "NURSING" and role == "NURSE" and self.status == "PAYMENT":
             self.status = "NURSING"
