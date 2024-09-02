@@ -26,6 +26,7 @@ services:
       - static_data:/app/static
       - media_data:/app/media
       - pip_cache:/root/.cache/pip
+      - .:/app
     env_file:
       - .env_production
     ports:
