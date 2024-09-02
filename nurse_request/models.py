@@ -96,6 +96,7 @@ class Request(models.Model):
             self.status = "ACCEPTED"
             self.save()
             return True
+        
 
         elif user_request['status'] == "REJECTED" and role == "NURSE" and self.status == "PENDING":
             self.status = "REJECTED"
@@ -106,27 +107,23 @@ class Request(models.Model):
             self.status = "CANCELLED"
             self.save()
             return True
+        
+        elif user_request['status'] == 'PAYMENT' and role == 'CLIENT' and self.status == 'ACCEPTED':
+            from transactions.models import Transaction
+            Transaction.payment(self)
+            
+            self.status = "PAYMENT"
+            self.save()
 
-        elif user_request['status'] == "NURSING" and role == "NURSE" and self.status == "ACCEPTED":
+
+        elif user_request['status'] == "NURSING" and role == "NURSE" and self.status == "PAYMENT":
             self.status = "NURSING"
             self.save()
             return True
 
-        elif user_request['status'] == "PAYMENT" and role == "NURSE" and self.status == "NURSING":
-            self.status = "PAYMENT"
-            self.save()
-            return True
-
-        elif user_request['status'] == "CLINET_CONFIRMATION" and role == "CLIENT" and self.status == 'PAYMENT':
+        elif user_request['status'] == "CLINET_CONFIRMATION" and role == "NURSE" and self.status == "NURSING":
             self.status = "CLINET_CONFIRMATION"
             self.save()
-
-            from transactions.models import  Transaction
-            Transaction.payment(self)
-            
-            self.status = "CLINET_CONFIRMATION"
-            self.save()
-            
             return True
 
         elif user_request['status'] == "COMPLETED" and role == "CLIENT" and self.status == "CLINET_CONFIRMATION":
