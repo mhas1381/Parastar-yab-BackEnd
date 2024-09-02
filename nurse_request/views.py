@@ -296,7 +296,7 @@ class TopNursesAPIView(APIView):
         top_nurses = NurseProfile.objects.order_by('-average_rate')[:10]
         nurses_data = [
             {
-                "id": nurse.id,
+                "id": nurse.user.id,
                 "name": nurse.user.get_full_name(),  # Assuming your User model has a get_full_name method
                 "average_rate": nurse.average_rate,
             }
