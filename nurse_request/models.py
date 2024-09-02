@@ -39,14 +39,14 @@ class Request(models.Model):
         related_name="requests",
     )
     created_date = models.DateTimeField(auto_now_add=True)
-    request_for_date = models.DateTimeField(null=True, blank=True)
-    request_start = models.DateTimeField(null=True, blank=True)
+    request_for_date = models.CharField(null=True, blank=True)
+    request_start = models.CharField(null=True, blank=True)
     duration_hours = models.FloatField(
         validators=[MinValueValidator(0.0)],
         default=1.0,
         help_text="مدت زمان درخواست به ساعت",
     )
-    request_end = models.DateTimeField(null=True, blank=True)
+    request_end = models.CharField(null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
