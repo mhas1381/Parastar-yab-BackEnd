@@ -170,7 +170,10 @@ class ClientRequestAPIView(APIView):
             serializer = RequestSerializer(request_object)
             return Response(serializer.data)
 
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {'message':f'{request.data['status']} , {request.user.role} , {request_object.status}'}, 
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 
