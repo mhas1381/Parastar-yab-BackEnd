@@ -54,6 +54,7 @@ class ClientRequestAPIView(APIView):
         in_proccess_requests = Request.objects.filter(
             status__in=["PENDING", "PAYMENT", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
             client=client).values(
+            'id',
             'client',
             'client__user__first_name',
             'client__user__last_name',
@@ -97,6 +98,7 @@ class ClientRequestAPIView(APIView):
             client=client,
             id=pk,
         ).values(
+            'id',
             'client',
             'client__user__first_name',
             'client__user__last_name',
@@ -185,6 +187,7 @@ class ClientFinishedRequests(APIView):
         client = ClientProfile.objects.filter(user=request.user).first()
         finished_requests = Request.objects.filter(
             status__in=["REJECTED", "CANCELLED", "COMPLETED"], client=client).values(
+            'id',
             'client',
             'client__user__first_name',
             'client__user__last_name',
@@ -220,6 +223,7 @@ class ClientFinishedRequests(APIView):
         finished_requests = Request.objects.filter(
             status__in=["REJECTED", "CANCELLED", "COMPLETED"], client=client, id=pk
         ).values(
+            'id',
             'client',
             'client__user__first_name',
             'client__user__last_name',
@@ -292,6 +296,7 @@ class NurseRequestsAPIView(APIView):
             status__in=["PENDING", "PAYMENT", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
             nurse=nurse_profile,
         ).values(
+            'id',
             'client',
             'client__user__first_name',
             'client__user__last_name',
@@ -335,6 +340,7 @@ class NurseRequestsAPIView(APIView):
             nurse=nurse_profile,
             id=pk,
         ).values(
+            'id',
             'client',
             'client__user__first_name',
             'client__user__last_name',
@@ -396,6 +402,7 @@ class NurseFinishedRequests(APIView):
         finished_requests = Request.objects.filter(
             status__in=["COMPLETED", "REJECTED"], nurse=nurse_profile
         ).values(
+            'id',
             'client',
             'client__user__first_name',
             'client__user__last_name',
@@ -438,6 +445,7 @@ class NurseFinishedRequests(APIView):
         finished_request = Request.objects.filter(
             status__in=["COMPLETED", "REJECTED"], nurse=nurse_profile, id=pk
         ).values(
+            'id',
             'client',
             'client__user__first_name',
             'client__user__last_name',

@@ -46,6 +46,7 @@ class NurseSeriliazr(serializers.ModelSerializer):
 
 class RequestSerializerExtra(serializers.Serializer):
     '''Serializing requests with extra informations.'''
+    id = serializers.IntegerField()
     client = serializers.IntegerField()
     client__user__first_name = serializers.CharField()
     client__user__last_name = serializers.CharField()
