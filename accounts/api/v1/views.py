@@ -198,7 +198,7 @@ class UserUpdateView(viewsets.ModelViewSet):
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
-class CreateClientProfileApiView(generics.RetrieveUpdateAPIView):
+class CreateClientProfileApiView(generics.CreateAPIView):
     serializer_class = CreateClientProfileSerializer
     permission_classes = [IsAuthenticated]  # اطمینان از احراز هویت کاربر
 
