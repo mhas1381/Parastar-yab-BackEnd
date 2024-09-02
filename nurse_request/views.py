@@ -29,8 +29,7 @@ class NurseSetSallary(APIView):
         #     # print(float(request.data['salary_per_hour']))
         #     return Response({'message':'we are her'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = NurseSeriliazr(nurse)
-        return Response(serializer.data)
+        return Response({'salary': nurse.salary_per_hour})
 
     def get(self, request, *args, **kwargs):
         """Getting nurse salary."""
