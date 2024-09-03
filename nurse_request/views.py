@@ -477,7 +477,7 @@ class NurseFinishedRequests(APIView):
 
 class TopNursesAPIView(APIView):
     def get(self, request):
-        top_nurses = NurseProfile.objects.order_by('-average_rate')[:10]
+        top_nurses = NurseProfile.objects.order_by('-average_rate')
         nurses_data = [
             {
                 "id": nurse.user.id,
