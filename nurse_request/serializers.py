@@ -44,3 +44,30 @@ class NurseSeriliazr(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class RequestSerializerExtra(serializers.Serializer):
+    '''Serializing requests with extra informations.'''
+    id = serializers.IntegerField()
+    client = serializers.IntegerField()
+    client__user__first_name = serializers.CharField()
+    client__user__last_name = serializers.CharField()
+    nurse = serializers.IntegerField()
+    nurse__user__first_name = serializers.CharField()
+    nurse__user__last_name = serializers.CharField()
+    created_date = serializers.DateTimeField()
+    request_for_date = serializers.CharField()
+    request_start = serializers.CharField()
+    duration_hours = serializers.FloatField()
+    request_end = serializers.CharField()
+    address = serializers.CharField()
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
+    for_others = serializers.BooleanField()
+    status = serializers.CharField()
+    rate = serializers.BooleanField()
+    category = serializers.CharField()
+    payment = serializers.FloatField()
+    other_information = serializers.JSONField()
+
+
+        
+

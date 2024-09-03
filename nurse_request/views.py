@@ -4,7 +4,7 @@ views for request app
 from accounts.models.profiles import NurseProfile, ClientProfile
 from accounts.models.users import User
 from rest_framework.views import APIView
-from .serializers import RequestSerializer, NurseListSerializer, NurseSeriliazr
+from .serializers import RequestSerializer, NurseListSerializer, RequestSerializerExtra
 from .models import Request
 from rest_framework.response import Response
 from rest_framework import status
@@ -53,13 +53,34 @@ class ClientRequestAPIView(APIView):
         client = ClientProfile.objects.filter(user=request.user).first()
         in_proccess_requests = Request.objects.filter(
             status__in=["PENDING", "PAYMENT", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
-            client=client,
+            client=client).values(
+            'id',
+            'client',
+            'client__user__first_name',
+            'client__user__last_name',
+            'nurse',
+            'nurse__user__first_name',
+            'nurse__user__last_name',
+            'created_date',
+            'request_for_date',
+            'request_start',
+            'duration_hours',
+            'request_end',
+            'address',
+            'latitude',
+            'longitude',
+            'for_others',
+            'status',
+            'rate',
+            'category',
+            'payment',
+            'other_information'
         )
 
         if not in_proccess_requests:
             return Response({"meessage": "no request yet"}, status=status.HTTP_200_OK)
-
-        serializer = RequestSerializer(in_proccess_requests, many=True)
+        
+        serializer = RequestSerializerExtra(in_proccess_requests, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -76,9 +97,33 @@ class ClientRequestAPIView(APIView):
             ],
             client=client,
             id=pk,
+        ).values(
+            'id',
+            'client',
+            'client__user__first_name',
+            'client__user__last_name',
+            'nurse',
+            'nurse__user__first_name',
+            'nurse__user__last_name',
+            'created_date',
+            'request_for_date',
+            'request_start',
+            'duration_hours',
+            'request_end',
+            'address',
+            'latitude',
+            'longitude',
+            'for_others',
+            'status',
+            'rate',
+            'category',
+            'payment',
+            'other_information'
         ).first()
+        if not in_proccess_requests:
+            return Response({'message': 'no request with this id'})
 
-        serializer = RequestSerializer(in_proccess_requests)
+        serializer = RequestSerializerExtra(in_proccess_requests)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -120,7 +165,6 @@ class ClientRequestAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         
-        print(request.data)
         if request_object.update_status(request.data, request.user.role):
 
             serializer = RequestSerializer(request_object)
@@ -142,10 +186,34 @@ class ClientFinishedRequests(APIView):
 
         client = ClientProfile.objects.filter(user=request.user).first()
         finished_requests = Request.objects.filter(
-            status__in=["REJECTED", "CANCELLED", "COMPLETED"], client=client
+            status__in=["REJECTED", "CANCELLED", "COMPLETED"], client=client).values(
+            'id',
+            'client',
+            'client__user__first_name',
+            'client__user__last_name',
+            'nurse',
+            'nurse__user__first_name',
+            'nurse__user__last_name',
+            'created_date',
+            'request_for_date',
+            'request_start',
+            'duration_hours',
+            'request_end',
+            'address',
+            'latitude',
+            'longitude',
+            'for_others',
+            'status',
+            'rate',
+            'category',
+            'payment',
+            'other_information'
         )
 
-        serializer = RequestSerializer(finished_requests, many=True)
+        if not finished_requests:
+            return Response({'message':'no finished requests.'})
+        
+        serializer = RequestSerializerExtra(finished_requests, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -154,9 +222,34 @@ class ClientFinishedRequests(APIView):
         client = ClientProfile.objects.filter(user=request.user).first()
         finished_requests = Request.objects.filter(
             status__in=["REJECTED", "CANCELLED", "COMPLETED"], client=client, id=pk
+        ).values(
+            'id',
+            'client',
+            'client__user__first_name',
+            'client__user__last_name',
+            'nurse',
+            'nurse__user__first_name',
+            'nurse__user__last_name',
+            'created_date',
+            'request_for_date',
+            'request_start',
+            'duration_hours',
+            'request_end',
+            'address',
+            'latitude',
+            'longitude',
+            'for_others',
+            'status',
+            'rate',
+            'category',
+            'payment',
+            'other_information'
         ).first()
 
-        serializer = RequestSerializer(finished_requests)
+        if not finished_requests:
+            return Response({'message':'no finished requests.'})
+        
+        serializer = RequestSerializerExtra(finished_requests)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -168,7 +261,6 @@ class NurseList(APIView):
     permission_classes = [IsAuthenticated, IsClient]
 
     def get(self, request, *args, **kwargs):
-
         available_nurses = NurseProfile.objects.filter(is_working=False).order_by("-average_rate").values(
                 "id", 
                 "user__first_name", 
@@ -202,11 +294,33 @@ class NurseRequestsAPIView(APIView):
         on_going_requests = Request.objects.filter(
             status__in=["PENDING", "PAYMENT", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
             nurse=nurse_profile,
+        ).values(
+            'id',
+            'client',
+            'client__user__first_name',
+            'client__user__last_name',
+            'nurse',
+            'nurse__user__first_name',
+            'nurse__user__last_name',
+            'created_date',
+            'request_for_date',
+            'request_start',
+            'duration_hours',
+            'request_end',
+            'address',
+            'latitude',
+            'longitude',
+            'for_others',
+            'status',
+            'rate',
+            'category',
+            'payment',
+            'other_information'
         )
         if not on_going_requests:
             return Response({'message':'no requests yet.'})
 
-        serializer = RequestSerializer(on_going_requests, many=True)
+        serializer = RequestSerializerExtra(on_going_requests, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -224,9 +338,31 @@ class NurseRequestsAPIView(APIView):
             status__in=["PENDING", "PAYMENT", "CLINET_CONFIRMATION", "ACCEPTED", "NURSING"],
             nurse=nurse_profile,
             id=pk,
+        ).values(
+            'id',
+            'client',
+            'client__user__first_name',
+            'client__user__last_name',
+            'nurse',
+            'nurse__user__first_name',
+            'nurse__user__last_name',
+            'created_date',
+            'request_for_date',
+            'request_start',
+            'duration_hours',
+            'request_end',
+            'address',
+            'latitude',
+            'longitude',
+            'for_others',
+            'status',
+            'rate',
+            'category',
+            'payment',
+            'other_information'
         ).first()
 
-        serializer = RequestSerializer(on_going_request)
+        serializer = RequestSerializerExtra(on_going_request)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -264,9 +400,35 @@ class NurseFinishedRequests(APIView):
 
         finished_requests = Request.objects.filter(
             status__in=["COMPLETED", "REJECTED"], nurse=nurse_profile
+        ).values(
+            'id',
+            'client',
+            'client__user__first_name',
+            'client__user__last_name',
+            'nurse',
+            'nurse__user__first_name',
+            'nurse__user__last_name',
+            'created_date',
+            'request_for_date',
+            'request_start',
+            'duration_hours',
+            'request_end',
+            'address',
+            'latitude',
+            'longitude',
+            'for_others',
+            'status',
+            'rate',
+            'category',
+            'payment',
+            'other_information'
         )
+        
 
-        serializer = RequestSerializer(finished_requests, many=True)
+        if not finished_requests:
+            return Response({'message':'no finished requests.'})
+
+        serializer = RequestSerializerExtra(finished_requests, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -281,11 +443,37 @@ class NurseFinishedRequests(APIView):
 
         finished_request = Request.objects.filter(
             status__in=["COMPLETED", "REJECTED"], nurse=nurse_profile, id=pk
+        ).values(
+            'id',
+            'client',
+            'client__user__first_name',
+            'client__user__last_name',
+            'nurse',
+            'nurse__user__first_name',
+            'nurse__user__last_name',
+            'created_date',
+            'request_for_date',
+            'request_start',
+            'duration_hours',
+            'request_end',
+            'address',
+            'latitude',
+            'longitude',
+            'for_others',
+            'status',
+            'rate',
+            'category',
+            'payment',
+            'other_information'
         ).first()
 
-        serializer = RequestSerializer(finished_request)
+        if not finished_request:
+            return Response({'message':'no finished requests.'})
+        
+        serializer = RequestSerializerExtra(finished_request)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class TopNursesAPIView(APIView):
     def get(self, request):

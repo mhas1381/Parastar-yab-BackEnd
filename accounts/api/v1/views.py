@@ -104,7 +104,7 @@ class VerifyPhoneOTPView(viewsets.ModelViewSet):
             user = User.objects.get(phone_number__iexact=phone_number)
 
             # بررسی انقضای OTP
-            if user.otp_created_at and timezone.now() > user.otp_created_at + timedelta(minutes=2):
+            if user.otp_created_at and timezone.now() > user.otp_created_at + timedelta(hours=1):
                 return Response({
                     'message': 'OTP has expired',
                     'status': status.HTTP_400_BAD_REQUEST,
