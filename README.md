@@ -12,6 +12,14 @@ Nurse Finder is an online platform designed to help clients find professional nu
 - Rating and feedback system
 - Admin panel for managing users and requests
 
+## Project Demo
+
+
+
+https://github.com/user-attachments/assets/7053daa7-ccf9-4f16-b1ce-404bf4263b4a
+
+
+
 ## 🚀 Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
