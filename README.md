@@ -17,7 +17,7 @@ Nurse Finder is an online platform designed to help clients find professional nu
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ```Shell
-git clone [https://github.com/Hive-Fundraiser/Hive-Backend.git](https://github.com/mhas1381/Parastar-yab-BackEnd)
+git clone https://github.com/Hive-Fundraiser/Hive-Backend.git
 ```
 
 ### 📋 Running project with docker ⛴
