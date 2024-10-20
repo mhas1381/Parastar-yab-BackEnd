@@ -103,4 +103,5 @@ python manage.py runserver
 
 ## 📐 Model Schema
 
+![photo_2024-10-20_21-49-55](https://github.com/user-attachments/assets/7e97ddbf-4680-4b93-b7f9-5a126a2a84c8)
 
